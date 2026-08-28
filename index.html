@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digest Tracker Pro</title>
+  
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg-main: #f4f6f8; --bg-card: #ffffff; --text-main: #2d3748;
+      --border: #e2e8f0; --primary: #1e3a8a; --primary-hover: #1e40af;
+      --status-none: #e2e8f0; --status-progress: #fbd38d;
+      --status-done: #9ae6b4; --status-stuck: #feb2b2;
+      --status-text: #1a202c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+    body { display: flex; height: 100vh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
+    
+    /* --- AUTH SCREEN --- */
+    #auth-screen { position: absolute; inset: 0; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .auth-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 420px; transition: 0.3s; }
+    .auth-header { text-align: center; margin-bottom: 30px; }
+    .auth-header h2 { font-size: 26px; color: #1a202c; margin-bottom: 8px; }
+    .auth-header p { color: #718096; font-size: 14px; }
+    
+    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 6px; }
+    .auth-input { width: 100%; padding: 12px 15px; border: 1px solid #cbd5e0; border-radius: 8px; outline: none; transition: 0.2s; font-size: 15px; }
+    .auth-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15); }
+    
+    .auth-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; margin-top: 10px; }
+    .auth-btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    
+    .auth-toggle { text-align: center; margin-top: 25px; font-size: 14px; color: #718096; }
+    .auth-toggle span { color: var(--primary); font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .auth-toggle span:hover { text-decoration: underline; color: var(--primary-hover); }
+    .auth-msg { text-align: center; font-size: 13px; margin-top: 15px; min-height: 20px; font-weight: 500; }
+    .msg-error { color: #e53e3e; }
+    .msg-success { color: #38a169; }
+
+    /* --- MAIN APP LAYOUT (Matched to reference) --- */
+    #app-screen { display: none; width: 100%; height: 100vh; }
+    
+    .sidebar { width: 260px; background: var(--primary); color: white; display: flex; flex-direction: column; }
+    .sidebar-brand { padding: 24px 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); line-height: 1.3; }
+    .sidebar-section-title { padding: 20px 20px 10px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
+    
+    .nav-list { list-style: none; flex: 1; overflow-y: auto; padding: 0 10px; }
+    .nav-item { padding: 12px 15px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 500; color: rgba(255,255,255,0.8); }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+    
+    .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .logout-btn { background: transparent; color: rgba(255,255,255,0.8); width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; text-align: left; transition: 0.2s; }
+    .logout-btn:hover { background: rgba(229, 62, 62, 0.2); color: #feb2b2; }
+
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #f8fafc; }
+    
+    /* --- TOP HEADER BAR --- */
+    .top-header { height: 70px; background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
+    .top-header h2 { font-size: 20px; color: #1e293b; font-weight: 600; }
+    
+    .user-profile-badge { display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid var(--border); padding: 6px 14px; border-radius: 30px; }
+    .user-avatar { width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #475569; font-size: 13px; }
+    .user-info { display: flex; flex-direction: column; text-align: left; }
+    .user-name { font-size: 13px; font-weight: 600; color: #1e293b; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-role { font-size: 11px; color: #64748b; }
+
+    /* --- CONTENT BODY --- */
+    .content-body { padding: 30px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    
+    .action-bar { display: flex; gap: 12px; margin-bottom: 25px; background: var(--bg-card); padding: 18px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); border: 1px solid var(--border); }
+    .action-bar input, .action-bar select { padding: 10px 14px; border: 1px solid #cbd5e0; border-radius: 8px; flex: 1; outline: none; font-size: 14px; transition: 0.2s; }
+    .action-bar input:focus, .action-bar select:focus { border-color: var(--primary); }
+    .btn { padding: 10px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; white-space: nowrap; transition: 0.2s; }
+    .btn:hover { background: var(--primary-hover); }
+
+    .table-container { flex: 1; overflow-y: auto; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { position: sticky; top: 0; background: #f8fafc; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; z-index: 10; color: #64748b; border-bottom: 2px solid var(--border); }
+    
+    .status-select { padding: 6px 12px; border-radius: 20px; border: none; font-weight: 600; font-size: 12px; cursor: pointer; outline: none; appearance: none; text-align: center; color: var(--status-text); width: 130px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .status-- { background-color: var(--status-none); }
+    .status-in-progress { background-color: var(--status-progress); }
+    .status-done { background-color: var(--status-done); }
+    .status-stuck { background-color: var(--status-stuck); color: #742a2a; }
+    a.case-link { color: var(--primary); font-weight: 600; text-decoration: none; }
+    a.case-link:hover { text-decoration: underline; }
+    .delete-btn { color: #a0aec0; background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 5px; transition: 0.2s; }
+    .delete-btn:hover { color: #e53e3e; }
+  </style>
+</head>
+<body>
+
+  <!-- AUTHENTICATION SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      
+      <!-- LOG IN VIEW -->
+      <div id="login-view">
+        <div class="auth-header">
+          <h2>Welcome Back</h2>
+          <p>Sign in to continue to Digest Tracker</p>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" class="auth-input" placeholder="you@lawschool.edu">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" class="auth-input" placeholder="••••••••">
+        </div>
+        <button class="auth-btn" id="login-btn" onclick="login()">Log In</button>
+        <p class="auth-toggle">Don't have an account? <span onclick="toggleAuth('signup')">Sign Up</span></p>
+      </div>
+
+      <!-- SIGN UP VIEW -->
+      <div id="signup-view" style="display: none;">
+        <div class="auth-header">
+          <h2>Create Account</h2>
+          <p>Start tracking your case digests securely</p>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signup-email" class="auth-input" placeholder="you@lawschool.edu">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signup-password" class="auth-input" placeholder="Min. 6 characters">
+        </div>
+        <button class="auth-btn" id="signup-btn" onclick="signup()">Create Account</button>
+        <p class="auth-toggle">Already have an account? <span onclick="toggleAuth('login')">Log In</span></p>
+      </div>
+
+      <p id="auth-msg" class="auth-msg"></p>
+    </div>
+  </div>
+
+  <!-- MAIN APP SCREEN -->
+  <div id="app-screen">
+    <!-- BLUE SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        Digest Tracker<br><span style="font-size: 11px; font-weight: normal; opacity: 0.7;">Law School Edition</span>
+      </div>
+      <div class="sidebar-section-title">Main Menu</div>
+      <ul class="nav-list" id="subject-list">
+        <li class="nav-item active" data-subject="Constitutional Law">Constitutional Law</li>
+        <li class="nav-item" data-subject="Criminal Law">Criminal Law</li>
+        <li class="nav-item" data-subject="Civil Law">Civil Law</li>
+        <li class="nav-item" data-subject="Remedial Law">Remedial Law</li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">← Log Out</button>
+      </div>
+    </aside>
+
+    <!-- MAIN APP CONTENT AREA -->
+    <div class="main-content">
+      <!-- TOP NAVIGATION BAR WITH USER PROFILE -->
+      <header class="top-header">
+        <h2 id="current-subject-title">Constitutional Law</h2>
+        
+        <div class="user-profile-badge">
+          <div class="user-avatar" id="user-initials">U</div>
+          <div class="user-info">
+            <span class="user-name" id="display-username">Loading...</span>
+            <span class="user-role">Law Student / Tracker</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <form class="action-bar" id="add-case-form">
+          <input type="text" id="input-assignee" placeholder="Assigned To" required style="max-width: 130px;">
+          <input type="text" id="input-gr" placeholder="G.R. Number" required style="max-width: 130px;">
+          <input type="text" id="input-case" placeholder="Case Name (Optional)">
+          <input type="text" id="input-topic" placeholder="Topic / Doctrine" required>
+          <select id="input-type" style="max-width: 120px;">
+            <option value="Solo">Solo Digest</option>
+            <option value="Group">Group Digest</option>
+          </select>
+          <button type="submit" class="btn">Add Case</button>
+        </form>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Assigned To</th>
+                <th>Status</th>
+                <th>G.R. Number</th>
+                <th>Case Name</th>
+                <th>Topic / Doctrine</th>
+                <th>Type</th>
+                <th>Full Text</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Rows injected by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. SUPABASE CONFIGURATION 
+    // ==========================================
+    const SUPABASE_URL = 'https://lhtfrtozxpcbswugxzcn.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Z3C9-9zNCx3OykwSclbj2g_kVIlSaBR';
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ==========================================
+    // 2. STATE & DOM ELEMENTS
+    // ==========================================
+    let currentSubject = 'Constitutional Law';
+    let currentUser = null;
+    const authMsg = document.getElementById('auth-msg');
+    
+    // ==========================================
+    // 3. AUTHENTICATION UI & LOGIC
+    // ==========================================
+    function toggleAuth(view) {
+      document.getElementById('login-view').style.display = view === 'login' ? 'block' : 'none';
+      document.getElementById('signup-view').style.display = view === 'signup' ? 'block' : 'none';
+      authMsg.textContent = '';
+      authMsg.className = 'auth-msg';
+    }
+
+    function showMsg(msg, isError = true) {
+      authMsg.textContent = msg;
+      authMsg.className = isError ? 'auth-msg msg-error' : 'auth-msg msg-success';
+    }
+
+    async function checkUser() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
+        
+        // Update top-right profile info
+        const email = currentUser.email || 'User';
+        document.getElementById('display-username').textContent = email;
+        document.getElementById('user-initials').textContent = email.charAt(0).toUpperCase();
+
+        fetchCases();
+      } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('app-screen').style.display = 'none';
+      }
+    }
+
+    async function signup() {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      const btn = document.getElementById('signup-btn');
+      
+      if(!email || !password) return showMsg("Please fill in all fields.");
+      
+      btn.textContent = "Creating...";
+      const { data, error } = await _supabase.auth.signUp({ email, password });
+      btn.textContent = "Create Account";
+
+      if (error) showMsg(error.message);
+      else showMsg("Success! Check your email to confirm your account.", false);
+    }
+
+    async function login() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const btn = document.getElementById('login-btn');
+
+      if(!email || !password) return showMsg("Please enter email and password.");
+
+      btn.textContent = "Logging in...";
+      const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+      btn.textContent = "Log In";
+
+      if (error) {
+        showMsg(error.message);
+      } else {
+        currentUser = data.user;
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-password').value = '';
+        authMsg.textContent = '';
+        checkUser();
+      }
+    }
+
+    async function logout() {
+      await _supabase.auth.signOut();
+      currentUser = null;
+      checkUser();
+    }
+
+    // ==========================================
+    // 4. DATABASE OPERATIONS (CRUD)
+    // ==========================================
+    async function fetchCases() {
+      if (!currentUser) return;
+      document.getElementById('table-body').innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:#a0aec0;">Loading cases from cloud...</td></tr>';
+      
+      const { data: cases, error } = await _supabase
+        .from('case_digests')
+        .select('*')
+        .eq('subject', currentSubject)
+        .order('created_at', { ascending: false }); 
+        
+      if (error) console.error("Fetch Error:", error);
+      else renderTable(cases);
+    }
+
+    document.getElementById('add-case-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.textContent = "Saving...";
+      
+      const grNumber = document.getElementById('input-gr').value.trim();
+      const caseName = document.getElementById('input-case').value.trim();
+      
+      let searchQuery = grNumber;
+      if (caseName && caseName !== "-") searchQuery += ` "${caseName}"`; 
+      searchQuery += " jurisprudence philippines";
+      const link = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+
+      const newCase = {
+        user_id: currentUser.id,
+        subject: currentSubject,
+        assignee: document.getElementById('input-assignee').value,
+        gr: grNumber,
+        status: '-',
+        caseName: caseName || "-",
+        topic: document.getElementById('input-topic').value,
+        type: document.getElementById('input-type').value,
+        link: link
+      };
+
+      const { data, error } = await _supabase.from('case_digests').insert([newCase]);
+      btn.textContent = "Add Case";
+
+      if (error) {
+        alert("Failed to save: " + error.message);
+      } else {
+        document.getElementById('add-case-form').reset();
+        fetchCases();
+      }
+    });
+
+    async function updateStatus(id, newStatus) {
+      const { error } = await _supabase.from('case_digests').update({ status: newStatus }).eq('id', id);
+      if (error) alert("Failed to update status.");
+      else fetchCases();
+    }
+
+    async function deleteCase(id) {
+      if (confirm("Permanently delete this case record?")) {
+        const { error } = await _supabase.from('case_digests').delete().eq('id', id);
+        if (error) alert("Failed to delete.");
+        else fetchCases();
+      }
+    }
+
+    // ==========================================
+    // 5. AUTO-FILL & ROUTING
+    // ==========================================
+    const mockCaseDatabase = {
+      "122156": "Manila Prince Hotel v. GSIS",
+      "82511": "Marcos v. Manglapus",
+      "127882": "La Bugal-B'laan Tribal Association v. Ramos"
+    };
+
+    document.getElementById('input-gr').addEventListener('input', (e) => {
+      const inputVal = e.target.value.trim();
+      const numericGR = inputVal.replace(/[^0-9]/g, '');
+      if (mockCaseDatabase[numericGR]) {
+        document.getElementById('input-case').value = mockCaseDatabase[numericGR];
+      }
+    });
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        e.target.classList.add('active');
+        currentSubject = e.target.dataset.subject;
+        document.getElementById('current-subject-title').textContent = currentSubject;
+        fetchCases();
+      });
+    });
+
+    function renderTable(cases) {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      
+      if (!cases || cases.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: #a0aec0; padding: 50px;">No cases assigned for ${currentSubject} yet.</td></tr>`;
+        return;
+      }
+
+      cases.forEach(c => {
+        let statusClass = 'status--';
+        if (c.status === 'IN PROGRESS') statusClass = 'status-in-progress';
+        if (c.status === 'DONE') statusClass = 'status-done';
+        if (c.status === 'STUCK') statusClass = 'status-stuck';
+
+        const typeStyle = c.type === 'Group' ? 'background: #faf089; padding: 4px 10px; border-radius: 6px; font-weight: 600; color: #744210;' : '';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight: 600; color: #2d3748;">${c.assignee}</td>
+          <td>
+            <select class="status-select ${statusClass}" onchange="updateStatus('${c.id}', this.value)">
+              <option value="-" ${c.status === '-' ? 'selected' : ''}>-</option>
+              <option value="IN PROGRESS" ${c.status === 'IN PROGRESS' ? 'selected' : ''}>IN PROGRESS</option>
+              <option value="DONE" ${c.status === 'DONE' ? 'selected' : ''}>DONE</option>
+              <option value="STUCK" ${c.status === 'STUCK' ? 'selected' : ''}>STUCK</option>
+            </select>
+          </td>
+          <td style="font-weight: 500;">${c.gr}</td>
+          <td style="font-weight: 600;">${c.caseName}</td>
+          <td style="color: #4a5568;">${c.topic}</td>
+          <td><span style="${typeStyle}">${c.type}</span></td>
+          <td><a href="${c.link}" target="_blank" class="case-link">Find Case</a></td>
+          <td><button class="delete-btn" onclick="deleteCase('${c.id}')">&times;</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Init
+    checkUser();
+  </script>
+</body>
+</html>
