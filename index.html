@@ -92,6 +92,54 @@
     a.case-link:hover { text-decoration: underline; }
     .delete-btn { color: #a0aec0; background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 5px; transition: 0.2s; }
     .delete-btn:hover { color: #e53e3e; }
+
+    /* --- RESPONSIVE LAYOUT --- */
+    @media (max-width: 1024px) {
+      .sidebar { width: 220px; }
+      .content-body { padding: 24px; }
+      .top-header { padding: 0 24px; }
+      .action-bar { flex-wrap: wrap; }
+      .action-bar input, .action-bar select { min-width: 160px; }
+      .action-bar input[style], .action-bar select[style] { max-width: none !important; }
+      .btn { min-width: 120px; }
+      th, td { padding: 14px 16px; }
+    }
+
+    @media (max-width: 767px) {
+      body, #app-screen { min-height: 100dvh; height: auto; overflow: auto; }
+      #app-screen { flex-direction: column; }
+      .sidebar { width: 100%; flex: none; }
+      .sidebar-brand { padding: 14px 16px; }
+      .sidebar-section-title { display: none; }
+      .nav-list { display: flex; overflow-x: auto; overflow-y: hidden; padding: 8px 12px; flex: none; scrollbar-width: thin; }
+      .nav-item { flex: 0 0 auto; margin: 0 4px 0 0; padding: 9px 12px; font-size: 13px; }
+      .sidebar-footer { position: absolute; top: 7px; right: 8px; border: 0; padding: 0; }
+      .logout-btn { padding: 9px 10px; font-size: 12px; }
+      .main-content { overflow: visible; min-height: 0; }
+      .top-header { height: auto; min-height: 64px; padding: 12px 16px; gap: 12px; }
+      .top-header h2 { font-size: 18px; }
+      .user-profile-badge { min-width: 0; gap: 8px; padding: 5px 8px; }
+      .user-avatar { width: 28px; height: 28px; flex: 0 0 28px; }
+      .user-info { min-width: 0; }
+      .user-name { max-width: 128px; }
+      .user-role { display: none; }
+      .content-body { padding: 16px; overflow: visible; }
+      .action-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; padding: 14px; border-radius: 8px; }
+      .action-bar input, .action-bar select, .action-bar input[style], .action-bar select[style] { width: 100%; min-width: 0; max-width: none !important; }
+      #input-case, #input-topic, .action-bar .btn { grid-column: 1 / -1; }
+      .btn { min-height: 42px; }
+      .table-container { flex: none; overflow-x: auto; overflow-y: visible; border-radius: 8px; }
+      table { min-width: 900px; }
+      th, td { padding: 13px 16px; }
+    }
+
+    @media (max-width: 420px) {
+      .top-header { align-items: flex-start; }
+      .top-header h2 { max-width: 48%; line-height: 1.25; }
+      .user-name { max-width: 108px; }
+      .action-bar { grid-template-columns: 1fr; }
+      .action-bar input, .action-bar select, #input-case, #input-topic, .action-bar .btn { grid-column: auto; }
+    }
   </style>
 </head>
 <body>
