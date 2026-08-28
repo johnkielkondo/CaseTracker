@@ -41,14 +41,14 @@
     .msg-error { color: #e53e3e; }
     .msg-success { color: #38a169; }
 
-    /* --- MAIN APP LAYOUT (Matched to reference) --- */
+    /* --- MAIN APP LAYOUT --- */
     #app-screen { display: none; width: 100%; height: 100vh; }
     
     .sidebar { width: 260px; background: var(--primary); color: white; display: flex; flex-direction: column; }
     .sidebar-brand { padding: 24px 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); line-height: 1.3; }
     .sidebar-section-title { padding: 20px 20px 10px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
     
-    .nav-list { list-style: none; flex: 1; overflow-y: auto; padding: 0 10px; }
+    .nav-list { list-style: none; overflow-y: auto; padding: 0 10px; }
     .nav-item { padding: 12px 15px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 500; color: rgba(255,255,255,0.8); }
     .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
     .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
@@ -92,6 +92,18 @@
     a.case-link:hover { text-decoration: underline; }
     .delete-btn { color: #a0aec0; background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 5px; transition: 0.2s; }
     .delete-btn:hover { color: #e53e3e; }
+
+    /* --- MODAL UI --- */
+    #delete-modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(2px); }
+    .modal-content { background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; animation: modalFadeIn 0.2s ease-out; }
+    .modal-content h3 { color: #1e293b; margin-bottom: 10px; font-size: 18px; }
+    .modal-content p { color: #64748b; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 12px; justify-content: center; }
+    .btn-cancel { padding: 10px 20px; background: #e2e8f0; color: #475569; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .btn-cancel:hover { background: #cbd5e0; }
+    .btn-danger { padding: 10px 20px; background: #e53e3e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .btn-danger:hover { background: #c53030; }
+    @keyframes modalFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     /* --- RESPONSIVE LAYOUT --- */
     @media (max-width: 1024px) {
@@ -195,13 +207,24 @@
       <div class="sidebar-brand">
         Digest Tracker<br><span style="font-size: 11px; font-weight: normal; opacity: 0.7;">Law School Edition</span>
       </div>
-      <div class="sidebar-section-title">Main Menu</div>
-      <ul class="nav-list" id="subject-list">
-        <li class="nav-item active" data-subject="Constitutional Law">Constitutional Law</li>
-        <li class="nav-item" data-subject="Criminal Law">Criminal Law</li>
-        <li class="nav-item" data-subject="Civil Law">Civil Law</li>
-        <li class="nav-item" data-subject="Remedial Law">Remedial Law</li>
+      
+      <!-- MAIN MENU -->
+      <div class="sidebar-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+        Main Menu
+        <button onclick="addSubject()" style="background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; border-radius: 4px; padding: 2px 8px;">+</button>
+      </div>
+      <ul class="nav-list" id="subject-list" style="flex: none; min-height: 100px;">
+        <!-- Subjects injected by JS -->
       </ul>
+
+      <!-- ARCHIVED MENU -->
+      <div class="sidebar-section-title" style="margin-top: 15px;">Archived</div>
+      <ul class="nav-list" id="archived-list" style="flex: none; min-height: 50px;">
+        <!-- Archived injected by JS -->
+      </ul>
+
+      <div class="sidebar-section-title" style="flex: 1;"></div> <!-- Spacer -->
+
       <div class="sidebar-footer">
         <button class="logout-btn" onclick="logout()">← Log Out</button>
       </div>
@@ -258,6 +281,18 @@
     </div>
   </div>
 
+  <!-- CUSTOM DELETE MODAL -->
+  <div id="delete-modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Delete Case</h3>
+      <p>Are you sure you want to permanently delete this digest? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn-danger" id="confirm-delete-btn" onclick="executeDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ==========================================
     // 1. SUPABASE CONFIGURATION 
@@ -269,7 +304,9 @@
     // ==========================================
     // 2. STATE & DOM ELEMENTS
     // ==========================================
-    let currentSubject = 'Constitutional Law';
+    let activeSubjects = ['Constitutional Law', 'Criminal Law', 'Civil Law', 'Remedial Law'];
+    let archivedSubjects = [];
+    let currentSubject = activeSubjects[0];
     let currentUser = null;
     const authMsg = document.getElementById('auth-msg');
     
@@ -300,6 +337,7 @@
         document.getElementById('display-username').textContent = email;
         document.getElementById('user-initials').textContent = email.charAt(0).toUpperCase();
 
+        loadSubjects(); 
         fetchCases();
       } else {
         document.getElementById('auth-screen').style.display = 'flex';
@@ -351,10 +389,113 @@
     }
 
     // ==========================================
-    // 4. DATABASE OPERATIONS (CRUD)
+    // 4. SUBJECT MANAGEMENT
+    // ==========================================
+    function loadSubjects() {
+      const storedActive = localStorage.getItem(`activeSubjects_${currentUser.id}`);
+      const storedArchived = localStorage.getItem(`archivedSubjects_${currentUser.id}`);
+      
+      if (storedActive) activeSubjects = JSON.parse(storedActive);
+      if (storedArchived) archivedSubjects = JSON.parse(storedArchived);
+      
+      if (!activeSubjects.includes(currentSubject) && activeSubjects.length > 0) {
+        currentSubject = activeSubjects[0];
+      }
+      
+      document.getElementById('current-subject-title').textContent = currentSubject || "No Subject Selected";
+      renderSubjects();
+    }
+
+    function saveSubjects() {
+      localStorage.setItem(`activeSubjects_${currentUser.id}`, JSON.stringify(activeSubjects));
+      localStorage.setItem(`archivedSubjects_${currentUser.id}`, JSON.stringify(archivedSubjects));
+    }
+
+    function renderSubjects() {
+      const list = document.getElementById('subject-list');
+      const archList = document.getElementById('archived-list');
+      list.innerHTML = '';
+      archList.innerHTML = '';
+      
+      // Render Active
+      activeSubjects.forEach(sub => {
+        const li = document.createElement('li');
+        li.className = `nav-item ${currentSubject === sub ? 'active' : ''}`;
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        li.innerHTML = `
+          <span onclick="selectSubject('${sub}')" style="flex:1;">${sub}</span> 
+          <button onclick="archiveSubject('${sub}')" style="background:none; border:none; color:rgba(255,255,255,0.5); cursor:pointer;" title="Archive">🗑</button>
+        `;
+        list.appendChild(li);
+      });
+
+      // Render Archived
+      archivedSubjects.forEach(sub => {
+        const li = document.createElement('li');
+        li.className = `nav-item`;
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        li.style.opacity = '0.6';
+        li.innerHTML = `
+          <span style="flex:1; cursor:not-allowed;">${sub}</span> 
+          <button onclick="unarchiveSubject('${sub}')" style="background:none; border:none; color:rgba(255,255,255,0.8); cursor:pointer;" title="Restore">↺</button>
+        `;
+        archList.appendChild(li);
+      });
+    }
+
+    function selectSubject(sub) {
+      currentSubject = sub;
+      document.getElementById('current-subject-title').textContent = currentSubject;
+      renderSubjects();
+      fetchCases();
+    }
+
+    function addSubject() {
+      const newSub = prompt("Enter new subject name:");
+      if (newSub && newSub.trim() !== '') {
+        const cleanSub = newSub.trim();
+        if (!activeSubjects.includes(cleanSub) && !archivedSubjects.includes(cleanSub)) {
+          activeSubjects.push(cleanSub);
+          saveSubjects();
+          selectSubject(cleanSub);
+        } else {
+          alert("Subject already exists!");
+        }
+      }
+    }
+
+    function archiveSubject(sub) {
+      if (confirm(`Are you sure you want to archive ${sub}?`)) {
+        activeSubjects = activeSubjects.filter(s => s !== sub);
+        archivedSubjects.push(sub);
+        saveSubjects();
+        
+        if (currentSubject === sub) {
+          currentSubject = activeSubjects.length > 0 ? activeSubjects[0] : '';
+          document.getElementById('current-subject-title').textContent = currentSubject || 'No Subject Selected';
+          fetchCases();
+        }
+        renderSubjects();
+      }
+    }
+
+    function unarchiveSubject(sub) {
+       archivedSubjects = archivedSubjects.filter(s => s !== sub);
+       activeSubjects.push(sub);
+       saveSubjects();
+       renderSubjects();
+    }
+
+    // ==========================================
+    // 5. DATABASE OPERATIONS (CRUD)
     // ==========================================
     async function fetchCases() {
-      if (!currentUser) return;
+      if (!currentUser || !currentSubject) {
+        document.getElementById('table-body').innerHTML = '<tr><td colspan="8" style="text-align:center; color: #a0aec0; padding: 50px;">No subject selected.</td></tr>';
+        return;
+      }
       document.getElementById('table-body').innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:#a0aec0;">Loading cases from cloud...</td></tr>';
       
       const { data: cases, error } = await _supabase
@@ -369,16 +510,28 @@
 
     document.getElementById('add-case-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      if (!currentSubject) {
+        alert("Please select or create a subject first.");
+        return;
+      }
+
       const btn = e.target.querySelector('button[type="submit"]');
       btn.textContent = "Saving...";
       
       const grNumber = document.getElementById('input-gr').value.trim();
       const caseName = document.getElementById('input-case').value.trim();
       
-      let searchQuery = grNumber;
-      if (caseName && caseName !== "-") searchQuery += ` "${caseName}"`; 
-      searchQuery += " jurisprudence philippines";
-      const link = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+      // Strip any accidental quotes from the user input
+      const cleanGR = grNumber.replace(/"/g, '');
+      const cleanCase = caseName ? caseName.replace(/"/g, '') : '';
+      
+      let searchQuery = `${cleanGR}`;
+      if (cleanCase && cleanCase !== "-") searchQuery += ` ${cleanCase}`; 
+      searchQuery += " (site:lawphil.net OR site:elibrary.judiciary.gov.ph)";
+      
+      // Add &btnI=I to trigger "I'm Feeling Lucky" and instantly redirect to the first result
+      const link = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&btnI=I`;
 
       const newCase = {
         user_id: currentUser.id,
@@ -409,16 +562,38 @@
       else fetchCases();
     }
 
-    async function deleteCase(id) {
-      if (confirm("Permanently delete this case record?")) {
-        const { error } = await _supabase.from('case_digests').delete().eq('id', id);
-        if (error) alert("Failed to delete.");
-        else fetchCases();
-      }
+    // --- CUSTOM DELETE MODAL LOGIC ---
+    let caseToDeleteId = null;
+
+    function promptDeleteCase(id) {
+      caseToDeleteId = id;
+      document.getElementById('delete-modal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+      caseToDeleteId = null;
+      document.getElementById('delete-modal').style.display = 'none';
+    }
+
+    async function executeDelete() {
+      if (!caseToDeleteId) return;
+      
+      const btn = document.getElementById('confirm-delete-btn');
+      btn.textContent = 'Deleting...';
+      btn.disabled = true;
+
+      const { error } = await _supabase.from('case_digests').delete().eq('id', caseToDeleteId);
+      
+      btn.textContent = 'Delete';
+      btn.disabled = false;
+      closeDeleteModal();
+
+      if (error) alert("Failed to delete.");
+      else fetchCases();
     }
 
     // ==========================================
-    // 5. AUTO-FILL & ROUTING
+    // 6. AUTO-FILL
     // ==========================================
     const mockCaseDatabase = {
       "122156": "Manila Prince Hotel v. GSIS",
@@ -432,16 +607,6 @@
       if (mockCaseDatabase[numericGR]) {
         document.getElementById('input-case').value = mockCaseDatabase[numericGR];
       }
-    });
-
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        e.target.classList.add('active');
-        currentSubject = e.target.dataset.subject;
-        document.getElementById('current-subject-title').textContent = currentSubject;
-        fetchCases();
-      });
     });
 
     function renderTable(cases) {
@@ -477,7 +642,7 @@
           <td style="color: #4a5568;">${c.topic}</td>
           <td><span style="${typeStyle}">${c.type}</span></td>
           <td><a href="${c.link}" target="_blank" class="case-link">Find Case</a></td>
-          <td><button class="delete-btn" onclick="deleteCase('${c.id}')">&times;</button></td>
+          <td><button class="delete-btn" onclick="promptDeleteCase('${c.id}')">&times;</button></td>
         `;
         tbody.appendChild(tr);
       });
