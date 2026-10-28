@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digest Tracker</title>
-  
+
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   <style>
     /* --- COLOR THEMES --- */
     :root {
       --bg-main: #f4f6f8; --bg-card: #ffffff; --text-main: #2d3748; --border: #e2e8f0;
-      --primary: #0f3a68; --primary-hover: #164e8a; 
+      --primary: #0f3a68; --primary-hover: #164e8a;
       --sidebar-bg: #0f3a68; --sidebar-text: white;
       --status-none: #e2e8f0; --status-progress: #fbd38d;
       --status-done: #9ae6b4; --status-stuck: #feb2b2; --status-text: #1a202c;
@@ -33,20 +33,20 @@
 
     /* --- AUTH SCREEN & SPLASH ANIMATION --- */
     #auth-screen { position: absolute; inset: 0; display: flex; z-index: 1000; background: #fff; transition: opacity 0.5s; }
-    
-    .auth-left { 
-      flex: 1; position: relative; background: var(--primary); 
+
+    .auth-left {
+      flex: 1; position: relative; background: var(--primary);
       display: flex; justify-content: center; align-items: center;
       transition: background 0.3s;
     }
-    
+
     .book-cover {
       width: 90%; max-width: 420px; aspect-ratio: 2.2 / 3;
-      background: #080c16; 
+      background: #080c16;
       border-radius: 4px 12px 12px 4px;
       box-shadow: 20px 20px 40px rgba(0,0,0,0.5), inset 8px 0 16px rgba(0,0,0,0.4);
       position: relative; display: flex; flex-direction: column;
-      border-left: 12px solid rgba(255,255,255,0.03); 
+      border-left: 12px solid rgba(255,255,255,0.03);
       overflow: hidden;
     }
 
@@ -81,7 +81,7 @@
       perspective: 1200px; z-index: 10; pointer-events: none;
       border-radius: 0 12px 12px 0;
     }
-    
+
     .f-page {
       position: absolute; width: 100%; height: 100%;
       background: #fdfbf7; transform-origin: left center;
@@ -103,12 +103,12 @@
     }
 
     /* Slide Left Animation Logic */
-    .auth-right { 
-      width: 0; padding: 0; opacity: 0; overflow: hidden; background: white; 
+    .auth-right {
+      width: 0; padding: 0; opacity: 0; overflow: hidden; background: white;
       display: flex; flex-direction: column; justify-content: center;
-      transition: width 0.8s ease, padding 0.8s ease, opacity 0.8s ease; 
+      transition: width 0.8s ease, padding 0.8s ease, opacity 0.8s ease;
     }
-    
+
     /* When intro finishes, show right panel */
     body:not(.intro-active) .auth-right {
       width: 480px; padding: 60px; opacity: 1;
@@ -119,15 +119,15 @@
     .auth-logo { font-size: 40px; color: var(--primary); margin-bottom: 10px; transition: color 0.3s; }
     .auth-header h2 { font-size: 24px; color: #1a202c; margin-bottom: 8px; }
     .auth-header p { color: #718096; font-size: 14px; }
-    
+
     .form-group { margin-bottom: 20px; text-align: left; }
     .form-group label { display: block; font-size: 12px; font-weight: 700; color: #4a5568; margin-bottom: 6px; text-transform: uppercase; }
     .auth-input { width: 100%; padding: 12px 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; transition: 0.2s; font-size: 14px; background: white; color: #1a202c; }
     .auth-input:focus { border-color: var(--primary); }
-    
+
     .auth-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .auth-btn:hover { background: var(--primary-hover); }
-    
+
     .auth-toggle { text-align: center; margin-top: 25px; font-size: 14px; color: #718096; }
     .auth-toggle span { color: var(--primary); font-weight: 600; cursor: pointer; transition: color 0.3s; }
     .auth-toggle span:hover { text-decoration: underline; }
@@ -137,29 +137,29 @@
 
     /* --- MAIN APP LAYOUT --- */
     #app-screen { display: none; width: 100%; height: 100vh; position: relative; }
-    
+
     .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; z-index: 1000; transition: background 0.3s; }
     .sidebar-brand { padding: 24px 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); line-height: 1.3; }
     .sidebar-section-title { padding: 20px 20px 10px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
-    
+
     .nav-list { list-style: none; overflow-y: auto; padding: 0 10px; }
     .nav-item { padding: 12px 15px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 500; color: rgba(255,255,255,0.8); }
     .nav-item:hover { background: rgba(255,255,255,0.08); color: var(--sidebar-text); }
     .nav-item.active { background: rgba(255,255,255,0.15); color: var(--sidebar-text); font-weight: 600; }
-    
+
     .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
     .logout-btn { background: transparent; color: rgba(255,255,255,0.8); width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; text-align: left; transition: 0.2s; }
     .logout-btn:hover { background: rgba(229, 62, 62, 0.2); color: #feb2b2; }
 
     .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-main); transition: background 0.3s; }
-    
+
     /* --- TOP HEADER BAR --- */
     .top-header { height: 70px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; transition: background 0.3s, border 0.3s; }
     .header-left { display: flex; align-items: center; gap: 16px; }
     .top-header h2 { font-size: 20px; color: var(--text-main); font-weight: 700; letter-spacing: -0.3px; }
-    
+
     .header-right { display: flex; align-items: center; gap: 12px; }
-    
+
     /* Color Wheel Styling */
     .color-wheel {
       -webkit-appearance: none; -moz-appearance: none; appearance: none;
@@ -169,11 +169,11 @@
     .color-wheel::-webkit-color-swatch-wrapper { padding: 0; }
     .color-wheel::-webkit-color-swatch { border: 2px solid var(--border); border-radius: 50%; }
     .color-wheel::-moz-color-swatch { border: 2px solid var(--border); border-radius: 50%; }
-    
+
     .theme-select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); font-size: 13px; cursor: pointer; outline: none; transition: 0.3s; font-weight: 500;}
-    
+
     #mobile-menu-btn { display: none; background: none; border: none; color: var(--text-main); cursor: pointer; padding: 4px; }
-    
+
     .user-profile-badge { display: flex; align-items: center; gap: 12px; background: var(--bg-main); border: 1px solid var(--border); padding: 6px 14px; border-radius: 30px; transition: 0.3s; margin-left: 10px;}
     .user-avatar { width: 32px; height: 32px; color: #94a3b8; display: flex; align-items: center; justify-content: center; }
     .user-avatar svg { width: 100%; height: 100%; }
@@ -183,7 +183,7 @@
 
     /* --- CONTENT BODY --- */
     .content-body { padding: 30px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    
+
     .action-bar { display: flex; gap: 12px; margin-bottom: 25px; background: var(--bg-card); padding: 18px; border-radius: 12px; border: 1px solid var(--border); transition: 0.3s; }
     .action-bar input, .action-bar select { padding: 10px 14px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 8px; flex: 1; outline: none; font-size: 14px; transition: 0.3s; }
     .action-bar input:focus, .action-bar select:focus { border-color: var(--primary); }
@@ -194,16 +194,16 @@
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); transition: 0.3s; }
     th { position: sticky; top: 0; background: var(--bg-main); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; z-index: 10; font-weight: 700; border-bottom: 2px solid var(--border); }
-    
+
     .status-select { padding: 6px 12px; border-radius: 20px; border: none; font-weight: 600; font-size: 12px; cursor: pointer; outline: none; appearance: none; text-align: center; color: var(--status-text); width: 130px; }
     .status-- { background-color: var(--status-none); }
     .status-in-progress { background-color: var(--status-progress); }
     .status-done { background-color: var(--status-done); }
     .status-stuck { background-color: var(--status-stuck); color: #fff; }
-    
+
     a.case-link { color: var(--primary); font-weight: 600; text-decoration: none; transition: 0.3s; }
     a.case-link:hover { text-decoration: underline; }
-    
+
     .action-cell { display: flex; gap: 10px; align-items: center; }
     .icon-btn { color: #a0aec0; background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; transition: 0.2s; }
     .icon-btn:hover { color: var(--primary); }
@@ -215,12 +215,12 @@
     .modal-content h3 { margin-bottom: 10px; font-size: 18px; }
     .modal-content p { font-size: 14px; margin-bottom: 24px; opacity: 0.8; line-height: 1.5; }
     .modal-actions { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
-    
+
     .btn-cancel { padding: 10px 20px; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
     .btn-danger { padding: 10px 20px; background: #e53e3e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
     .btn-primary { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
     .btn-warning { padding: 10px 20px; background: #ed8936; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-    
+
     .modal-input { width: 100%; padding: 12px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 8px; margin-bottom: 15px; outline: none; font-size: 14px; text-align: left; transition: 0.3s; }
     .modal-input:focus { border-color: var(--primary); }
     .modal-label { display: block; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 5px; opacity: 0.8; }
@@ -251,38 +251,211 @@
       .table-container { flex: none; overflow-x: auto; }
       table { min-width: 800px; }
     }
+
+    /* Refined study workspace */
+    :root { --bg-main:#f6f7f9; --text-main:#202d40; --border:#e5e8ee; --primary:#254b76; --primary-hover:#193958; --sidebar-bg:#14283f; --muted:#6b7789; }
+    [data-theme="dark"] { --muted:#a6b2c3; }
+    body { height:100dvh; }
+    button, a, input, select { -webkit-tap-highlight-color:transparent; }
+    button { min-height:36px; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid #789bcd; outline-offset:3px; }
+    button:disabled { opacity:.6; cursor:wait; }
+    #auth-screen { position:fixed; overflow:auto; background:#faf9f6; }
+    .auth-left { flex:1.1; background:radial-gradient(ellipse at 20% 15%,#365674,transparent 65%),#14283f; padding:64px; align-items:flex-start; flex-direction:column; color:#fff; }
+    .auth-left::after { content:"PHILIPPINE LAW · YOUR PERSONAL STUDY SPACE"; position:absolute; bottom:32px; font-size:10px; letter-spacing:2px; color:#a8bacd; }
+    .auth-wordmark { font-size:18px; font-weight:650; letter-spacing:-.5px; margin-bottom:70px; }
+    .auth-wordmark span { display:inline-grid; place-items:center; width:36px; height:36px; border:1px solid #8b9bae; border-radius:10px; margin-right:10px; }
+    .auth-kicker, .eyebrow { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+    .auth-kicker { color:#c6b489; margin-bottom:20px; }
+    .auth-story h1 { font-family:Georgia,serif; font-size:clamp(38px,4.5vw,68px); font-weight:400; line-height:1.08; letter-spacing:-2px; max-width:560px; }
+    .auth-story h1 em { color:#d8c69f; font-weight:400; }
+    .auth-story>p { margin-top:24px; max-width:390px; font-size:15px; color:#bac8d7; line-height:1.8; }
+    .study-preview { margin-top:40px; padding:22px; border:1px solid #ffffff24; border-radius:14px; background:#ffffff08; width:min(100%,390px); }
+    .study-preview div { display:flex; justify-content:space-between; font-size:12px; color:#cbd5e1; }
+    .study-preview strong { color:#fff; font-size:14px; }
+    .study-preview p { margin-top:16px; font-size:12px; color:#c6b489; }
+    .auth-right, body:not(.intro-active) .auth-right { width:46%; padding:60px; opacity:1; background:#faf9f6; display:flex; align-items:center; justify-content:center; }
+    .auth-card { min-width:0; max-width:370px; }
+    .auth-header { text-align:left; margin-bottom:32px; }
+    .auth-header h2 { font-size:30px; letter-spacing:-1px; }
+    .auth-header p { line-height:1.7; }
+    .auth-logo { font-size:24px; margin-bottom:24px; }
+    .auth-input { padding:14px 16px; border-radius:10px; }
+    .auth-btn { min-height:48px; border-radius:10px; }
+    .auth-toggle button { background:none; border:0; color:var(--primary); font-weight:700; cursor:pointer; }
+    .sidebar { width:244px; flex-shrink:0; padding:10px; overflow-y:auto; }
+    .sidebar-brand { padding:24px 14px 28px; font-size:21px; letter-spacing:-.6px; }
+    .sidebar-section-title { padding:24px 14px 12px; font-size:10px; letter-spacing:1.6px; }
+    .nav-list { padding:0; overflow:visible; }
+    .nav-item { border-radius:9px; padding:4px 10px; font-size:13px; gap:8px; }
+    .nav-item.active { background:#ffffff18; box-shadow:inset 3px 0 #d8c69f; }
+    .subject-button { flex:1; text-align:left; padding:10px 4px; border:0; background:none; color:inherit; font:inherit; cursor:pointer; line-height:1.5; }
+    .subject-action { background:none; border:0; color:#b8c7d7; cursor:pointer; min-width:30px; }
+    .sidebar-footer { padding:12px 4px; }
+    .sidebar-note { padding:18px 14px; margin-top:auto; color:#a8bacd; font-size:12px; line-height:1.7; }
+    .top-header { min-height:76px; padding:0 36px; flex-shrink:0; }
+    .top-header h2 { font-size:15px; font-weight:600; }
+    .main-content { min-width:0; }
+    .content-body { padding:32px 36px; overflow-y:auto; display:block; }
+    .workspace-intro { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:26px; }
+    .workspace-intro h1 { font-size:32px; letter-spacing:-1.1px; margin:9px 0; font-weight:650; }
+    .workspace-intro p { color:var(--muted); font-size:14px; line-height:1.6; }
+    .workspace-date { font-size:12px; color:var(--muted); white-space:nowrap; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:26px; }
+    .stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:13px; padding:20px; }
+    .stat-card span { font-size:12px; color:var(--muted); }
+    .stat-card strong { display:block; font-size:30px; font-weight:600; margin:12px 0 4px; letter-spacing:-1px; }
+    .stat-card small { color:var(--muted); font-size:11px; }
+    .progress-track { height:4px; background:var(--border); border-radius:8px; margin-top:13px; overflow:hidden; }
+    .progress-track i { display:block; height:100%; background:#4f9c83; transition:width .3s; }
+    .section-heading { display:flex; justify-content:space-between; align-items:center; margin:26px 0 14px; }
+    .section-heading h2 { font-size:17px; letter-spacing:-.4px; }
+    .section-heading span { font-size:12px; color:var(--muted); }
+    .action-bar { flex-wrap:wrap; padding:16px; margin-bottom:22px; box-shadow:0 3px 8px #14283f03; }
+    .action-bar input { min-width:120px; }
+    .action-bar input, .action-bar select { background:var(--bg-card); font-size:13px; }
+    .btn { font-weight:600; }
+    .filter-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
+    .search-wrap { position:relative; flex:1; min-width:200px; }
+    .search-wrap span { position:absolute; left:14px; top:11px; color:var(--muted); }
+    .filter-bar input, .filter-bar select { height:42px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border); border-radius:9px; padding:0 12px; font-size:12px; }
+    .filter-bar input { width:100%; padding-left:36px; }
+    .table-container { overflow:auto; min-height:240px; }
+    table { min-width:850px; }
+    th { background:var(--bg-card); color:var(--muted); font-size:10px; letter-spacing:.9px; padding:16px; border-bottom:1px solid var(--border); }
+    td { padding:18px 16px; font-size:12px; line-height:1.5; }
+    tbody tr:hover { background:color-mix(in srgb,var(--primary) 3%,var(--bg-card)); }
+    .status-select { font-size:10px; width:116px; padding:8px; }
+    .status-stuck { color:var(--status-text); }
+    .type-pill { background:var(--bg-main); border:1px solid var(--border); padding:4px 8px; border-radius:5px; font-size:10px; }
+    .case-name { font-weight:600; min-width:160px; }
+    .action-cell { display:table-cell; white-space:nowrap; }
+    .icon-btn { min-width:32px; color:var(--muted); }
+    .table-footer { display:flex; justify-content:space-between; gap:12px; font-size:11px; color:var(--muted); padding:16px 2px; }
+    .empty-state { text-align:center; padding:56px 24px; }
+    .empty-state strong { display:block; font-size:17px; margin-bottom:8px; }
+    .empty-state p { color:var(--muted); }
+    .modal-overlay { backdrop-filter:blur(5px); padding:16px; }
+    .modal-content { border-radius:18px; padding:28px; max-height:90dvh; overflow:auto; box-shadow:0 24px 80px #0003; }
+    #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); max-width:calc(100% - 32px); padding:14px 22px; background:var(--text-main); color:var(--bg-card); border-radius:10px; box-shadow:0 8px 32px #0002; z-index:3000; font-size:13px; }
+    #toast:empty { display:none; }
+    @media(min-width:768px) { #app-screen { height:100dvh; } }
+    @media(max-width:1100px) { .auth-left { padding:40px; } .auth-right,body:not(.intro-active) .auth-right { padding:36px; } .sidebar { width:220px; } .content-body { padding:26px 22px; } .top-header { padding:0 22px; } .user-info { display:none; } .workspace-date { display:none; } }
+    @media(max-width:900px) { body:not(.intro-active) .auth-left { display:flex; } .auth-left { flex:1; } .auth-right,body:not(.intro-active) .auth-right { width:48%; } .auth-story h1 { font-size:42px; } .study-preview { display:none; } }
+    @media(max-width:767px) { #auth-screen { flex-direction:column; } body:not(.intro-active) .auth-left { display:flex; padding:30px 24px; flex:none; } .auth-wordmark { margin-bottom:24px; } .auth-kicker,.auth-left::after,.auth-story>p { display:none; } .auth-story h1 { font-size:34px; letter-spacing:-1px; max-width:360px; } .auth-right,body:not(.intro-active) .auth-right { width:100%; padding:32px 24px; flex:1; } .sidebar { width:260px; } .top-header { padding:16px; border-bottom:1px solid var(--border); } .header-right { justify-content:flex-start; } .user-profile-badge { margin-left:auto; } .content-body { padding:24px 16px; } .workspace-intro h1 { font-size:27px; } .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .stat-card { padding:16px; } .stat-card strong { font-size:26px; } .section-heading span { display:none; } .filter-bar select { flex:1; min-width:0; } .search-wrap { flex-basis:100%; } .table-footer { flex-wrap:wrap; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+    /* Motion direction: paper, ink, and deliberate editorial pacing. */
+    :root { --ease-out: cubic-bezier(.16,1,.3,1); }
+    .auth-left { overflow:hidden; isolation:isolate; justify-content:center; }
+    .auth-left::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:.14; background-image:repeating-linear-gradient(0deg,transparent,transparent 79px,#a8bacd55 80px),repeating-linear-gradient(90deg,transparent,transparent 79px,#a8bacd55 80px); mask-image:linear-gradient(135deg,transparent,#000); }
+    .auth-wordmark { margin-bottom:44px; }
+    .auth-wordmark span { border-radius:50%; font-family:Georgia,serif; font-size:24px; }
+    .title-line { display:block; overflow:hidden; padding-bottom:.13em; margin-bottom:-.13em; }
+    /* Original CSS implementations inspired by 21st.dev's Slide Up Text (animbits)
+       and Animated Tabs (SmoothUI). Reference links are in DESIGN_REFERENCES.md. */
+    .title-line > span { display:block; }
+    .title-word { display:inline-block; animation:ink-rise .95s var(--ease-out) both; animation-delay:var(--word-delay,0ms); }
+    .auth-kicker { animation:soft-arrival .8s var(--ease-out) both; }
+    .auth-story>p { animation:soft-arrival 1s 220ms var(--ease-out) both; }
+    .auth-card { animation:soft-arrival 1s 180ms var(--ease-out) both; }
+    .auth-logo { display:inline-grid; place-items:center; height:42px; width:42px; border:1px solid #d7d9d9; border-radius:50%; font-family:Georgia,serif; font-size:25px; }
+    .folio { width:min(100%,420px); margin-top:32px; perspective:1000px; animation:soft-arrival 1.2s 300ms var(--ease-out) both; }
+    .folio-stage { position:relative; height:184px; margin:0 12px 24px 0; transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); transition:transform .65s var(--ease-out); }
+    .folio-stage::before,.folio-stage::after { content:""; position:absolute; inset:0; border:1px solid #e7dcc944; border-radius:3px 10px 10px 3px; background:#324258; transform-origin:bottom left; transition:transform .8s var(--ease-out); }
+    .folio-stage::before { transform:translate(13px,10px) rotate(3deg); }
+    .folio-stage::after { transform:translate(6px,5px) rotate(1.5deg); background:#697481; }
+    .folio:hover .folio-stage::before { transform:translate(19px,11px) rotate(5deg); }
+    .folio:hover .folio-stage::after { transform:translate(9px,5px) rotate(2.5deg); }
+    .folio-paper { position:absolute; inset:0; z-index:1; padding:22px 24px 18px 32px; background:#f4f0e7; color:#25354b; border-radius:3px 10px 10px 3px; box-shadow:0 20px 40px #0003; border-left:3px solid #b6a17b; overflow:hidden; }
+    .folio-paper::before { content:""; position:absolute; left:20px; top:0; bottom:0; width:1px; background:#b6a17b33; }
+    .folio-meta { display:flex; justify-content:space-between; align-items:center; font-size:9px; letter-spacing:1.5px; color:#6a726f; text-transform:uppercase; }
+    .folio-seal { display:grid; place-items:center; width:26px; height:26px; border:1px solid #b6a17b; border-radius:50%; font-family:Georgia,serif; font-size:17px; }
+    .folio-paper h2 { font:400 25px/1.2 Georgia,serif; margin:12px 0 9px; letter-spacing:-.5px; }
+    .folio-paper p { font-size:11px; color:#6b736f; line-height:1.6; max-width:290px; }
+    .folio-rule { height:1px; background:#d9d3c7; margin-top:17px; position:relative; overflow:hidden; }
+    .folio-rule::after { content:""; position:absolute; inset:0; background:#8e7750; transform:scaleX(var(--chapter-progress,.3333)); transform-origin:left; transition:transform .7s var(--ease-out); }
+    .folio-controls { display:flex; align-items:center; gap:4px; position:relative; z-index:2; width:fit-content; max-width:100%; padding:4px; border:1px solid #ffffff18; border-radius:9px; background:#0d1b2a33; }
+    .folio-indicator { position:absolute; left:0; top:4px; bottom:4px; width:var(--tab-width,0px); transform:translateX(var(--tab-left,4px)); background:#ffffff10; border:1px solid #d8c69f30; border-radius:6px; pointer-events:none; transition:transform .45s var(--ease-out),width .45s var(--ease-out); }
+    .folio-tab { position:relative; background:none; border:0; color:#a8bacd; cursor:pointer; font-size:10px; padding:8px 10px; border-radius:6px; transition:color .2s; white-space:nowrap; }
+    .folio-tab[aria-pressed="true"] { color:#e5d3ac; }
+    .folio-tab:hover { color:#fff; }
+    .folio-tab span { font:italic 12px Georgia,serif; margin-right:6px; opacity:.7; }
+    .folio-hint { font-size:9px; letter-spacing:1px; color:#93a4b8; margin-top:8px; }
+    .workspace-intro { animation:soft-arrival .65s var(--ease-out) both; }
+    .stat-card { position:relative; overflow:hidden; animation:soft-arrival .7s var(--ease-out) both; transition:transform .35s var(--ease-out),box-shadow .35s,border-color .35s; }
+    .stat-card:nth-child(2) { animation-delay:60ms; }
+    .stat-card:nth-child(3) { animation-delay:120ms; }
+    .stat-card:nth-child(4) { animation-delay:180ms; }
+    .stat-card::before { content:""; position:absolute; left:20px; right:20px; top:0; height:2px; background:var(--primary); transform:scaleX(0); transform-origin:left; transition:transform .5s var(--ease-out); }
+    .stat-card:hover { transform:translateY(-3px); box-shadow:0 12px 28px #14283f09; border-color:color-mix(in srgb,var(--primary) 24%,var(--border)); }
+    .stat-card:hover::before { transform:scaleX(1); }
+    .stat-card strong { font-variant-numeric:tabular-nums; }
+    .progress-track i { transition:width .8s var(--ease-out); }
+    .action-bar { animation:soft-arrival .7s 140ms var(--ease-out) both; }
+    .table-container { animation:soft-arrival .8s 200ms var(--ease-out) both; }
+    .nav-item { transition:background .25s,box-shadow .3s; }
+    .subject-button { transition:transform .3s var(--ease-out); }
+    .subject-button:hover { transform:translateX(3px); }
+    .btn,.auth-btn,.btn-primary,.btn-cancel,.btn-danger,.btn-warning { transition:transform .25s var(--ease-out),background .2s,box-shadow .25s; }
+    .btn:hover,.auth-btn:hover,.btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 16px #14283f20; }
+    button:active { transform:translateY(1px)!important; }
+    .auth-input,.modal-input,.filter-bar input,.action-bar input { transition:border-color .2s,box-shadow .25s,background .25s; }
+    .auth-input:focus,.modal-input:focus,.filter-bar input:focus,.action-bar input:focus { box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 10%,transparent); }
+    .case-link { display:inline-block; text-decoration:none!important; background-image:linear-gradient(currentColor,currentColor); background-size:0% 1px; background-position:0 100%; background-repeat:no-repeat; transition:background-size .3s var(--ease-out); }
+    .case-link:hover { background-size:100% 1px; }
+    .modal-overlay { animation:veil-in .2s ease-out; }
+    .modal-content { animation:dialog-arrival .35s var(--ease-out) both; }
+    #toast:not(:empty) { animation:toast-arrival .4s var(--ease-out) both; }
+    .loading-line { width:120px; height:2px; margin:16px auto 0; background:var(--border); overflow:hidden; }
+    .loading-line::after { content:""; display:block; height:100%; width:45%; background:var(--primary); animation:loading-pass 1.2s ease-in-out infinite; }
+    @keyframes ink-rise { from { transform:translateY(110%) rotate(2deg); } to { transform:translateY(0) rotate(0); } }
+    @keyframes soft-arrival { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes dialog-arrival { from { opacity:0; transform:translateY(16px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes veil-in { from { opacity:0; } to { opacity:1; } }
+    @keyframes toast-arrival { from { opacity:0; transform:translate(-50%,12px); } to { opacity:1; transform:translate(-50%,0); } }
+    @keyframes loading-pass { from { transform:translateX(-120%); } to { transform:translateX(330%); } }
+    @media(max-height:800px) and (min-width:768px) { .auth-left { padding-top:32px; padding-bottom:60px; } .auth-wordmark { margin-bottom:26px; } .auth-story h1 { font-size:clamp(38px,4vw,56px); } .auth-story>p { margin-top:16px; } .folio { margin-top:24px; } .folio-stage { height:174px; } }
+    @media(max-width:1000px) and (min-width:768px) { .folio-paper { padding-right:16px; } .folio-paper h2 { font-size:22px; } .folio-tab { padding:8px 5px; } }
+    @media(max-width:767px) { .folio { margin-top:24px; width:100%; max-width:420px; } .folio-stage { height:156px; margin-bottom:16px; } .folio-paper { padding-top:14px; padding-bottom:14px; } .folio-paper h2 { font-size:23px; margin-top:8px; } .folio-rule { margin-top:10px; } .folio-hint { display:none; } .auth-wordmark { margin-bottom:24px; } .auth-left { min-height:0; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } .folio-stage,.stat-card:hover,.subject-button:hover,.btn:hover,.auth-btn:hover,.btn-primary:hover { transform:none!important; } }
   </style>
 </head>
-<body class="intro-active">
+<body>
 
   <!-- AUTHENTICATION SCREEN -->
   <div id="auth-screen">
     <div class="auth-left">
-      <div class="book-cover">
-        
-        <!-- Flipping Pages Effect -->
-        <div class="flipping-pages">
-          <div class="f-page f-page-1"></div>
-          <div class="f-page f-page-2"></div>
-          <div class="f-page f-page-3"></div>
-        </div>
-
-        <div class="book-border"></div>
-        <div class="book-content">
-          <div class="book-title">Digest Tracker</div>
-          <div class="book-subtitle">How To Conquer Law School</div>
-        </div>
+      <div class="auth-wordmark"><span aria-hidden="true">§</span> Digest Tracker</div>
+      <div class="auth-story"><div class="auth-kicker">A little structure. A clearer mind.</div>
+        <h1><span class="title-line"><span><span class="title-word">Every</span> <span class="title-word" style="--word-delay:70ms">case.</span></span></span><span class="title-line"><span><span class="title-word" style="--word-delay:140ms">One</span> <span class="title-word" style="--word-delay:210ms">step</span> <em class="title-word" style="--word-delay:280ms">closer.</em></span></span></h1>
+        <p>Your space to organize case digests, follow your progress, and prepare for the next recitation.</p>
       </div>
+      <section class="folio" aria-label="Explore your study workflow">
+        <div class="folio-stage">
+          <div class="folio-paper" id="folio-paper">
+            <div class="folio-meta"><span id="folio-number">FIELD NOTES / 01</span><span class="folio-seal" aria-hidden="true">§</span></div>
+            <div id="folio-copy" aria-live="polite" aria-atomic="true"><h2>A place for every case.</h2><p>Arrange your subjects and keep each decision in its right chapter.</p></div>
+            <div class="folio-rule" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="folio-controls" role="group" aria-label="Study workflow chapters">
+          <span class="folio-indicator" aria-hidden="true"></span>
+          <button class="folio-tab" type="button" aria-pressed="true" data-chapter="0"><span>01</span> Organize</button>
+          <button class="folio-tab" type="button" aria-pressed="false" data-chapter="1"><span>02</span> Make progress</button>
+          <button class="folio-tab" type="button" aria-pressed="false" data-chapter="2"><span>03</span> Revisit</button>
+        </div>
+        <p class="folio-hint">YOUR NEXT CHAPTER STARTS HERE</p>
+      </section>
     </div>
-    
     <div class="auth-right">
       <div class="auth-card">
-        
+
         <div id="login-view">
           <div class="auth-header">
             <div class="auth-logo">⚖️</div>
             <h2>Welcome Back</h2>
-            <p>Sign in to your account</p>
+            <p>Your study workspace is ready when you are.</p>
           </div>
           <div class="form-group">
             <label>Email Address</label>
@@ -293,7 +466,7 @@
             <input type="password" id="login-password" class="auth-input" placeholder="••••••••">
           </div>
           <button class="auth-btn" id="login-btn" onclick="login()">➔ Sign In</button>
-          <p class="auth-toggle">Don't have an account? <span onclick="toggleAuth('signup')">Sign Up</span></p>
+          <p class="auth-toggle">Don't have an account? <button type="button" onclick="toggleAuth('signup')">Sign Up</button></p>
         </div>
 
         <div id="signup-view" style="display: none;">
@@ -311,7 +484,7 @@
             <input type="password" id="signup-password" class="auth-input" placeholder="Min. 6 characters">
           </div>
           <button class="auth-btn" id="signup-btn" onclick="signup()">➔ Create Account</button>
-          <p class="auth-toggle">Already have an account? <span onclick="toggleAuth('login')">Sign In</span></p>
+          <p class="auth-toggle">Already have an account? <button type="button" onclick="toggleAuth('login')">Sign In</button></p>
         </div>
 
         <p id="auth-msg" class="auth-msg"></p>
@@ -322,14 +495,14 @@
   <!-- MAIN APP SCREEN -->
   <div id="app-screen">
     <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="closeSidebar()"></div>
-    
+
     <aside class="sidebar" id="main-sidebar">
       <div class="sidebar-brand">
         Digest Tracker<br><span style="font-size: 11px; font-weight: normal; opacity: 0.7;">PH Law Edition</span>
       </div>
-      
+
       <div class="sidebar-section-title" style="display: flex; justify-content: space-between; align-items: center;">
-        Main Menu
+        Your subjects
         <button onclick="promptAddSubject()" style="background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; border-radius: 4px; padding: 2px 8px;">+</button>
       </div>
       <ul class="nav-list" id="subject-list" style="flex: none; min-height: 100px;"></ul>
@@ -337,7 +510,7 @@
       <div class="sidebar-section-title" style="margin-top: 15px;">Archived</div>
       <ul class="nav-list" id="archived-list" style="flex: none; min-height: 50px;"></ul>
 
-      <div class="sidebar-section-title" style="flex: 1;"></div> 
+      <div class="sidebar-note">One case at a time.<br>Keep building your understanding.</div>
       <div class="sidebar-footer">
         <button class="logout-btn" onclick="logout()">← Log Out</button>
       </div>
@@ -351,11 +524,11 @@
           </button>
           <h2 id="current-subject-title">Constitutional Law I</h2>
         </div>
-        
+
         <div class="header-right">
           <!-- COLOR WHEEL & THEME SWITCHER -->
           <input type="color" id="custom-color-picker" class="color-wheel" title="Pick a custom color" oninput="applyCustomColor(this.value)">
-          
+
           <select id="theme-switcher" class="theme-select" onchange="changeTheme(this.value)">
             <option value="blue">Sapphire Blue</option>
             <option value="emerald">Emerald Green</option>
@@ -379,6 +552,14 @@
       </header>
 
       <div class="content-body">
+        <div class="workspace-intro"><div><div class="eyebrow">Your study workspace</div><h1>A clearer path to prepared.</h1><p>Organize your cases. See your progress. Focus on what’s next.</p></div><time class="workspace-date" id="workspace-date"></time></div>
+        <div class="stats-grid" aria-label="Subject progress">
+          <div class="stat-card"><span>Total cases</span><strong id="stat-total">0</strong><small>In this subject</small></div>
+          <div class="stat-card"><span>In progress</span><strong id="stat-progress">0</strong><small>Keep the momentum</small></div>
+          <div class="stat-card"><span>Completed</span><strong id="stat-done">0</strong><small id="completion-label">0% of your cases</small><div class="progress-track"><i id="completion-bar" style="width:0%"></i></div></div>
+          <div class="stat-card"><span>Needs attention</span><strong id="stat-stuck">0</strong><small>Cases to revisit</small></div>
+        </div>
+        <div class="section-heading"><h2>Add to your reading list</h2><span>Start with a G.R. number. Fill in the details later.</span></div>
         <form class="action-bar" id="add-case-form">
           <input type="text" id="input-gr" placeholder="G.R. Number" required style="max-width: 150px;">
           <input type="text" id="input-case" placeholder="Case Name (Optional)">
@@ -390,6 +571,13 @@
           <button type="submit" class="btn">Add Case</button>
         </form>
 
+        <div class="section-heading"><h2>Your case library</h2><button class="btn-cancel" type="button" onclick="exportCases()">Export CSV ↗</button></div>
+        <div class="filter-bar">
+          <label class="search-wrap"><span aria-hidden="true">⌕</span><input id="case-search" type="search" aria-label="Search cases" placeholder="Search G.R. number, case, or doctrine…" oninput="renderTable(currentLoadedCases)"></label>
+          <select id="status-filter" aria-label="Filter by status" onchange="renderTable(currentLoadedCases)"><option value="all">All statuses</option><option value="-">Not started</option><option>IN PROGRESS</option><option>DONE</option><option>STUCK</option></select>
+          <select id="type-filter" aria-label="Filter by digest type" onchange="renderTable(currentLoadedCases)"><option value="all">All digest types</option><option value="Solo">Solo digest</option><option value="Group">Group digest</option></select>
+          <select id="case-sort" aria-label="Sort cases" onchange="renderTable(currentLoadedCases)"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name">Case name A–Z</option></select>
+        </div>
         <div class="table-container">
           <table>
             <thead>
@@ -406,6 +594,7 @@
             <tbody id="table-body"></tbody>
           </table>
         </div>
+        <div class="table-footer"><span id="results-count" aria-live="polite">0 cases</span><span>Small steps today. Stronger recitations tomorrow.</span></div>
       </div>
     </div>
   </div>
@@ -415,22 +604,22 @@
     <div class="modal-content">
       <h3>Edit Case Details</h3>
       <input type="hidden" id="edit-id">
-      
+
       <span class="modal-label">G.R. Number</span>
       <input type="text" id="edit-gr" class="modal-input" required>
-      
+
       <span class="modal-label">Case Name</span>
       <input type="text" id="edit-case" class="modal-input">
-      
+
       <span class="modal-label">Topic / Doctrine</span>
       <input type="text" id="edit-topic" class="modal-input">
-      
+
       <span class="modal-label">Type</span>
       <select id="edit-type" class="modal-input">
         <option value="Solo">Solo Digest</option>
         <option value="Group">Group Digest</option>
       </select>
-      
+
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
         <button class="btn-primary" id="confirm-edit-btn" onclick="executeEdit()">Save Changes</button>
@@ -493,11 +682,11 @@
     function applyCustomColor(hex) {
       document.documentElement.setAttribute('data-theme', 'custom');
       document.getElementById('theme-switcher').value = 'custom';
-      
+
       document.documentElement.style.setProperty('--primary', hex);
       document.documentElement.style.setProperty('--sidebar-bg', hex);
-      document.documentElement.style.setProperty('--primary-hover', adjustColorBrightness(hex, -25)); 
-      
+      document.documentElement.style.setProperty('--primary-hover', adjustColorBrightness(hex, -25));
+
       localStorage.setItem('digest_tracker_theme', 'custom');
       localStorage.setItem('digest_tracker_custom_color', hex);
     }
@@ -505,7 +694,7 @@
     function changeTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('digest_tracker_theme', theme);
-      
+
       if (theme !== 'custom') {
         document.documentElement.style.removeProperty('--primary');
         document.documentElement.style.removeProperty('--sidebar-bg');
@@ -530,12 +719,12 @@
     // --- SUPABASE CONFIGURATION ---
     const SUPABASE_URL = 'https://lhtfrtozxpcbswugxzcn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_Z3C9-9zNCx3OykwSclbj2g_kVIlSaBR';
-    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const _supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let activeSubjects = []; let archivedSubjects = []; let currentSubject = ''; let currentUser = null;
-    let currentLoadedCases = []; 
+    let currentLoadedCases = [];
     const authMsg = document.getElementById('auth-msg');
-    
+
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
       document.getElementById('sidebar-backdrop').classList.toggle('active');
@@ -557,16 +746,17 @@
     }
 
     // --- ANIMATION / INITIAL LOAD TIMING ---
-    window.addEventListener('load', () => { 
+    window.addEventListener('load', () => {
       // 1.5 seconds for the flipping page animation to play out
       setTimeout(() => {
         checkUser();
-      }, 1500);
+      }, 0);
     });
 
     async function checkUser() {
+      if (!_supabase) { showMsg('Unable to connect. Check your connection and reload the page.'); return; }
       const { data: { session } } = await _supabase.auth.getSession();
-      
+
       if (session) {
         // If logged in: Fade out auth screen and load app
         currentUser = session.user;
@@ -585,29 +775,35 @@
     }
 
     async function signup() {
+      if (!_supabase) return showMsg('Unable to connect. Please reload and try again.');
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
       const btn = document.getElementById('signup-btn');
       if(!email || !password) return showMsg("Please fill in all fields.");
+      if (btn.disabled) return;
+      btn.disabled = true;
       btn.textContent = "Creating...";
       const { data, error } = await _supabase.auth.signUp({ email, password });
-      btn.textContent = "➔ Create Account";
+      btn.textContent = "➔ Create Account"; btn.disabled = false;
       if (error) showMsg(error.message); else showMsg("Success! Check your email to confirm.", false);
     }
 
     async function login() {
+      if (!_supabase) return showMsg('Unable to connect. Please reload and try again.');
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
       const btn = document.getElementById('login-btn');
       if(!email || !password) return showMsg("Please enter email and password.");
+      if (btn.disabled) return;
+      btn.disabled = true;
       btn.textContent = "Logging in...";
       const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-      btn.textContent = "➔ Sign In";
+      btn.textContent = "➔ Sign In"; btn.disabled = false;
       if (error) { showMsg(error.message); } else {
         currentUser = data.user;
         document.getElementById('login-email').value = ''; document.getElementById('login-password').value = '';
-        authMsg.textContent = ''; 
-        
+        authMsg.textContent = '';
+
         // Immediate entry upon logging in
         document.getElementById('auth-screen').style.opacity = '0';
         setTimeout(() => {
@@ -619,10 +815,10 @@
       }
     }
 
-    async function logout() { 
-      await _supabase.auth.signOut(); 
-      currentUser = null; 
-      
+    async function logout() {
+      await _supabase.auth.signOut();
+      currentUser = null;
+
       // Return to sliding UI
       document.getElementById('app-screen').style.display = 'none';
       document.getElementById('auth-screen').style.display = 'flex';
@@ -636,7 +832,7 @@
       const storedArchived = localStorage.getItem(`archivedSubjects_${currentUser.id}`);
       activeSubjects = storedActive ? JSON.parse(storedActive) : ['Constitutional Law I', 'Criminal Law I', 'Persons and Family Relations', 'Statutory Construction'];
       archivedSubjects = storedArchived ? JSON.parse(storedArchived) : [];
-      if (!activeSubjects.includes(currentSubject) && activeSubjects.length > 0) currentSubject = activeSubjects[0];
+      if (!activeSubjects.includes(currentSubject)) currentSubject = activeSubjects[0] || '';
       document.getElementById('current-subject-title').textContent = currentSubject || "No Subject Selected";
       renderSubjects();
     }
@@ -647,21 +843,19 @@
     }
 
     function renderSubjects() {
-      const list = document.getElementById('subject-list'); const archList = document.getElementById('archived-list');
-      list.innerHTML = ''; archList.innerHTML = '';
-      activeSubjects.forEach(sub => {
-        const li = document.createElement('li'); li.className = `nav-item ${currentSubject === sub ? 'active' : ''}`;
-        li.style.display = 'flex'; li.style.justifyContent = 'space-between';
-        li.innerHTML = `<span onclick="selectSubject('${sub}')" style="flex:1;">${sub}</span> 
-          <button onclick="promptArchiveSubject('${sub}')" style="background:none; border:none; color:rgba(255,255,255,0.5); cursor:pointer;">🗑</button>`;
-        list.appendChild(li);
-      });
-      archivedSubjects.forEach(sub => {
-        const li = document.createElement('li'); li.className = `nav-item`; li.style.display = 'flex'; li.style.justifyContent = 'space-between'; li.style.opacity = '0.6';
-        li.innerHTML = `<span style="flex:1; cursor:not-allowed;">${sub}</span> 
-          <button onclick="unarchiveSubject('${sub}')" style="background:none; border:none; color:rgba(255,255,255,0.8); cursor:pointer;">↺</button>`;
-        archList.appendChild(li);
-      });
+      for (const [listId, subjects, archived] of [['subject-list', activeSubjects, false], ['archived-list', archivedSubjects, true]]) {
+        const list = document.getElementById(listId); list.replaceChildren();
+        subjects.forEach(sub => {
+          const li = document.createElement('li'); li.className = 'nav-item' + (sub === currentSubject ? ' active' : ''); li.style.display = 'flex';
+          const name = document.createElement('button'); name.className = 'subject-button'; name.textContent = sub;
+          name.onclick = () => archived ? unarchiveSubject(sub) : selectSubject(sub);
+          if (!archived && sub === currentSubject) name.setAttribute('aria-current', 'page');
+          const action = document.createElement('button'); action.className = 'subject-action'; action.textContent = archived ? '↶' : '▱';
+          action.title = (archived ? 'Restore ' : 'Archive ') + sub; action.setAttribute('aria-label', action.title);
+          action.onclick = () => archived ? unarchiveSubject(sub) : promptArchiveSubject(sub);
+          li.append(name, action); list.append(li);
+        });
+      }
     }
 
     function selectSubject(sub) { currentSubject = sub; document.getElementById('current-subject-title').textContent = currentSubject; renderSubjects(); fetchCases(); closeSidebar(); }
@@ -670,7 +864,7 @@
     function executeAddSubject() {
       const newSub = document.getElementById('new-subject-input').value.trim();
       if (newSub !== '') {
-        if (!activeSubjects.includes(newSub) && !archivedSubjects.includes(newSub)) { activeSubjects.push(newSub); saveSubjects(); selectSubject(newSub); closeAddSubjectModal(); } 
+        if (!activeSubjects.includes(newSub) && !archivedSubjects.includes(newSub)) { activeSubjects.push(newSub); saveSubjects(); selectSubject(newSub); closeAddSubjectModal(); }
         else { alert("Subject already exists!"); }
       }
     }
@@ -689,26 +883,37 @@
     }
     function unarchiveSubject(sub) { archivedSubjects = archivedSubjects.filter(s => s !== sub); activeSubjects.push(sub); saveSubjects(); renderSubjects(); }
 
+    let fetchVersion = 0;
     async function fetchCases() {
-      if (!currentUser || !currentSubject) { document.getElementById('table-body').innerHTML = '<tr><td colspan="7" style="text-align:center; opacity: 0.5; padding: 50px;">No subject selected.</td></tr>'; return; }
-      document.getElementById('table-body').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; opacity: 0.5;">Loading cases from cloud...</td></tr>';
-      const { data: cases, error } = await _supabase.from('case_digests').select('*').eq('subject', currentSubject).order('created_at', { ascending: false }); 
-      if (error) { console.error("Fetch Error:", error); } 
-      else { currentLoadedCases = cases || []; renderTable(currentLoadedCases); }
+      const version = ++fetchVersion;
+      currentLoadedCases = []; renderTable([]);
+      if (!currentUser || !currentSubject) return;
+      document.getElementById('table-body').innerHTML = '<tr><td colspan="7" class="empty-state" role="status">Loading your cases…<div class="loading-line" aria-hidden="true"></div></td></tr>';
+      try {
+        const { data, error } = await _supabase.from('case_digests').select('*').eq('user_id', currentUser.id).eq('subject', currentSubject).order('created_at', { ascending: false });
+        if (version !== fetchVersion) return;
+        if (error) throw error;
+        currentLoadedCases = data || []; renderTable(currentLoadedCases); animateCaseRows();
+      } catch (error) {
+        if (version !== fetchVersion) return;
+        document.getElementById('table-body').innerHTML = '<tr><td colspan="7" class="empty-state"><strong>Couldn’t load your cases</strong><p>Check your connection and try again.</p><button class="btn-cancel" onclick="fetchCases()">Try again</button></td></tr>';
+      }
     }
 
     document.getElementById('add-case-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentSubject) return alert("Please select or create a subject first.");
-      const btn = e.target.querySelector('button[type="submit"]'); btn.textContent = "Saving...";
-      
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn.disabled) return;
+      btn.disabled = true; btn.textContent = "Saving...";
+
       const grNumber = document.getElementById('input-gr').value.trim();
       const caseName = document.getElementById('input-case').value.trim() || "-";
       const topic = document.getElementById('input-topic').value.trim() || "-";
-      
+
       let searchQuery = `${grNumber.replace(/"/g, '')}`;
       if (caseName && caseName !== "-") searchQuery += ` ${caseName.replace(/"/g, '')}`; searchQuery += " (site:lawphil.net OR site:elibrary.judiciary.gov.ph)";
-      
+
       const newCase = {
         user_id: currentUser.id, subject: currentSubject,
         gr: grNumber, status: '-', caseName: caseName, topic: topic,
@@ -716,15 +921,24 @@
       };
 
       const { error } = await _supabase.from('case_digests').insert([newCase]);
-      btn.textContent = "Add Case";
-      if (error) alert("Failed to save: " + error.message); else { document.getElementById('add-case-form').reset(); fetchCases(); }
+      btn.textContent = "Add Case"; btn.disabled = false;
+      if (error) toast("Failed to save: " + error.message); else { document.getElementById('add-case-form').reset(); toast('Case added to your reading list.'); fetchCases(); }
     });
 
-    async function updateStatus(id, newStatus) { const { error } = await _supabase.from('case_digests').update({ status: newStatus }).eq('id', id); if (error) alert("Failed to update status."); else fetchCases(); }
+    async function updateStatus(id, newStatus) {
+      try {
+        const { error } = await _supabase.from('case_digests').update({ status: newStatus }).eq('id', id).eq('user_id', currentUser.id);
+        if (error) throw error;
+        const item = currentLoadedCases.find(c => String(c.id) === String(id));
+        if (item) item.status = newStatus;
+        toast('Case status updated.');
+      } catch { toast('Could not update the status. Please try again.'); }
+      renderTable(currentLoadedCases);
+    }
 
     // --- EDIT LOGIC ---
     function promptEditCase(id) {
-      const caseObj = currentLoadedCases.find(c => c.id === id);
+      const caseObj = currentLoadedCases.find(c => String(c.id) === String(id));
       if(!caseObj) return;
       document.getElementById('edit-id').value = caseObj.id;
       document.getElementById('edit-gr').value = caseObj.gr !== '-' ? caseObj.gr : '';
@@ -734,14 +948,15 @@
       document.getElementById('edit-modal').style.display = 'flex';
     }
     function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
-    
+
     async function executeEdit() {
       const id = document.getElementById('edit-id').value;
       const btn = document.getElementById('confirm-edit-btn');
-      
+
       const newGr = document.getElementById('edit-gr').value.trim();
+      if (!newGr) return toast('Please enter a G.R. number.');
       const newCaseName = document.getElementById('edit-case').value.trim() || "-";
-      
+
       let searchQuery = `${newGr.replace(/"/g, '')}`;
       if (newCaseName && newCaseName !== "-") searchQuery += ` ${newCaseName.replace(/"/g, '')}`; searchQuery += " (site:lawphil.net OR site:elibrary.judiciary.gov.ph)";
 
@@ -755,9 +970,9 @@
 
       btn.textContent = 'Saving...'; btn.disabled = true;
       const { error } = await _supabase.from('case_digests').update(updates).eq('id', id);
-      btn.textContent = 'Save Changes'; btn.disabled = false; closeEditModal();
-      
-      if (error) alert("Failed to update."); else fetchCases();
+      btn.textContent = 'Save Changes'; btn.disabled = false;
+
+      if (error) toast("Could not save changes. Please try again."); else { closeEditModal(); toast('Case details saved.'); fetchCases(); }
     }
 
     // --- DELETE LOGIC ---
@@ -772,52 +987,179 @@
       if (error) alert("Failed to delete."); else fetchCases();
     }
 
-    function renderTable(cases) {
-      const tbody = document.getElementById('table-body'); tbody.innerHTML = '';
-      if (!cases || cases.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; opacity: 0.5; padding: 50px;">No cases assigned yet.</td></tr>`; return; }
-      cases.forEach(c => {
-        let statusClass = 'status--';
-        if (c.status === 'IN PROGRESS') statusClass = 'status-in-progress'; if (c.status === 'DONE') statusClass = 'status-done'; if (c.status === 'STUCK') statusClass = 'status-stuck';
-        const typeStyle = c.type === 'Group' ? 'background: rgba(250, 240, 137, 0.5); padding: 4px 10px; border-radius: 6px; font-weight: 600;' : '';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>
-            <select class="status-select ${statusClass}" onchange="updateStatus('${c.id}', this.value)">
-              <option value="-" ${c.status === '-' ? 'selected' : ''}>-</option>
-              <option value="IN PROGRESS" ${c.status === 'IN PROGRESS' ? 'selected' : ''}>IN PROGRESS</option>
-              <option value="DONE" ${c.status === 'DONE' ? 'selected' : ''}>DONE</option>
-              <option value="STUCK" ${c.status === 'STUCK' ? 'selected' : ''}>STUCK</option>
-            </select>
-          </td>
-          <td style="font-weight: 600;">${c.gr}</td>
-          <td style="font-weight: 500;">${c.caseName}</td>
-          <td style="opacity: 0.8;">${c.topic}</td>
-          <td><span style="${typeStyle}">${c.type}</span></td>
-          <td><a href="${c.link}" target="_blank" class="case-link">Find Case</a></td>
-          <td class="action-cell">
-            <button class="icon-btn" onclick="promptEditCase('${c.id}')" title="Edit">✎</button>
-            <button class="icon-btn delete" onclick="promptDeleteCase('${c.id}')" title="Delete">🗑</button>
-          </td>
-        `; tbody.appendChild(tr);
+    function visibleCases(cases) {
+      const query = document.getElementById('case-search').value.toLowerCase().trim();
+      const status = document.getElementById('status-filter').value;
+      const type = document.getElementById('type-filter').value;
+      return cases.filter(c => (!query || [c.gr, c.caseName, c.topic].some(v => String(v || '').toLowerCase().includes(query))) && (status === 'all' || c.status === status) && (type === 'all' || c.type === type)).sort((a,b) => {
+        const sort = document.getElementById('case-sort').value;
+        if (sort === 'name') return String(a.caseName).localeCompare(String(b.caseName));
+        const delta = (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0);
+        return sort === 'oldest' ? -delta : delta;
       });
     }
-  </script>
-
-  <script>
-  // Disable right-click
-  document.addEventListener('contextmenu', event => event.preventDefault());
-
-  // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-  document.onkeydown = function (e) {
-    if (
-      e.keyCode === 123 || // F12
-      (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || // Ctrl+Shift+I / J
-      (e.ctrlKey && e.keyCode === 85) // Ctrl+U
-    ) {
-      e.preventDefault();
-      return false;
+    function renderTable(cases = []) {
+      const counts = {total:cases.length, progress:cases.filter(c => c.status === 'IN PROGRESS').length, done:cases.filter(c => c.status === 'DONE').length, stuck:cases.filter(c => c.status === 'STUCK').length};
+      Object.entries(counts).forEach(([key,value]) => {
+        const metric = document.getElementById('stat-' + key);
+        const changed = metric.textContent !== String(value);
+        metric.textContent = value;
+        if (changed) playMotion(metric, [{opacity:.4,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}], {duration:350});
+      });
+      const percent = cases.length ? Math.round(counts.done / cases.length * 100) : 0;
+      document.getElementById('completion-label').textContent = percent + '% of your cases';
+      document.getElementById('completion-bar').style.width = percent + '%';
+      const filtered = visibleCases(cases);
+      document.getElementById('results-count').textContent = `Showing ${filtered.length} of ${cases.length} cases`;
+      const tbody = document.getElementById('table-body'); tbody.replaceChildren();
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><strong></strong><p></p></td></tr>';
+        tbody.querySelector('strong').textContent = !currentSubject ? 'Create a subject to get started' : cases.length ? 'No matching cases' : 'Your next case starts here';
+        tbody.querySelector('p').textContent = !currentSubject ? 'Use the + button beside Your subjects.' : cases.length ? 'Try another search or adjust your filters.' : 'Add a G.R. number above to start your reading list.';
+        return;
+      }
+      filtered.forEach(c => {
+        const tr = document.createElement('tr');
+        const cell = (value, cls) => { const td = document.createElement('td'); td.textContent = value || '—'; if (cls) td.className = cls; tr.append(td); return td; };
+        const statusCell = cell(''); statusCell.replaceChildren();
+        const select = document.createElement('select');
+        select.className = 'status-select ' + ({'IN PROGRESS':'status-in-progress',DONE:'status-done',STUCK:'status-stuck'}[c.status] || 'status--');
+        select.setAttribute('aria-label', 'Status for ' + c.gr);
+        for (const [value,label] of [['-','Not started'],['IN PROGRESS','In progress'],['DONE','Completed'],['STUCK','Needs attention']]) { const option = new Option(label,value); option.selected = c.status === value; select.add(option); }
+        select.onchange = () => { select.disabled = true; updateStatus(c.id, select.value); }; statusCell.append(select);
+        cell(c.gr); cell(c.caseName, 'case-name'); cell(c.topic);
+        const typeCell = cell(''); typeCell.replaceChildren(); const pill = document.createElement('span'); pill.className = 'type-pill'; pill.textContent = c.type; typeCell.append(pill);
+        const linkCell = cell(''); linkCell.replaceChildren(); const link = document.createElement('a');
+        const query = [c.gr,c.caseName,'(site:lawphil.net OR site:elibrary.judiciary.gov.ph)'].join(' ');
+        link.href = 'https://www.google.com/search?q=' + encodeURIComponent(query); link.target = '_blank'; link.rel = 'noopener noreferrer'; link.className = 'case-link'; link.textContent = 'Find case ↗'; linkCell.append(link);
+        const actions = cell('', 'action-cell'); actions.replaceChildren();
+        for (const [label,symbol,handler] of [['Edit','✎',promptEditCase],['Delete','×',promptDeleteCase]]) { const button = document.createElement('button'); button.className = 'icon-btn' + (label === 'Delete' ? ' delete' : ''); button.textContent = symbol; button.title = label + ' ' + c.gr; button.setAttribute('aria-label',button.title); button.onclick = () => handler(c.id); actions.append(button); }
+        tbody.append(tr);
+      });
     }
-  };
-</script>
+    let toastTimer;
+    function toast(message) { const el = document.getElementById('toast'); el.textContent = message; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.textContent = '', 4500); }
+    function exportCases() {
+      const cases = visibleCases(currentLoadedCases);
+      if (!cases.length) return toast('There are no cases to export with these filters.');
+      const escape = value => '"' + String(value ?? '').replace(/^[=+@\-]/, "'$&").replace(/"/g, '""') + '"';
+      const rows = [['Status','G.R. Number','Case Name','Topic / Doctrine','Type'],...cases.map(c => [c.status,c.gr,c.caseName,c.topic,c.type])];
+      const blob = new Blob(['\ufeff' + rows.map(row => row.map(escape).join(',')).join('\r\n')], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'digest-tracker-cases.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url),1000); toast('Case list exported.');
+    }
+    document.getElementById('workspace-date').textContent = new Intl.DateTimeFormat('en', {weekday:'short',month:'long',day:'numeric'}).format(new Date());
+    document.querySelectorAll('input,select').forEach(input => {
+      if (!input.labels?.length && !input.hasAttribute('aria-label')) input.setAttribute('aria-label', input.placeholder || input.title || input.id.replaceAll('-', ' '));
+    });
+    document.getElementById('mobile-menu-btn').setAttribute('aria-label','Toggle subject navigation');
+    document.querySelector('.sidebar-section-title button').setAttribute('aria-label','Add subject');
+    document.getElementById('auth-msg').setAttribute('role','status');
+    for (const mode of ['login','signup']) {
+      document.getElementById(mode + '-email').autocomplete = 'email';
+      document.getElementById(mode + '-password').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+      document.getElementById(mode + '-view').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); mode === 'login' ? login() : signup(); } });
+    }
+    let returnFocus;
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-label',modal.querySelector('h3')?.textContent || 'Dialog');
+      new MutationObserver(() => {
+        if (modal.style.display === 'flex') { returnFocus = document.activeElement; modal.querySelector('input:not([type="hidden"]),button,select')?.focus(); }
+        else if (returnFocus) { returnFocus.focus(); }
+      }).observe(modal,{attributes:true,attributeFilter:['style']});
+      modal.addEventListener('click',e => { if (e.target === modal) modal.style.display = 'none'; });
+    });
+    document.addEventListener('keydown',e => {
+      const modal = [...document.querySelectorAll('.modal-overlay')].find(el => el.style.display === 'flex');
+      if (e.key === 'Escape') { if (modal) modal.style.display = 'none'; closeSidebar(); }
+      if (modal && e.key === 'Tab') {
+        const controls = [...modal.querySelectorAll('button,input:not([type="hidden"]),select')].filter(el => !el.disabled);
+        const first = controls[0], last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+    // Keep animation optional: content and controls work without the animation API.
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function playMotion(element, frames, options = {}) {
+      if (!element || motionPreference.matches || !element.animate) return null;
+      element.getAnimations?.().forEach(animation => animation.cancel());
+      return element.animate(frames, {duration:500, easing:'cubic-bezier(.16,1,.3,1)', ...options});
+    }
+    function animateCaseRows() {
+      // Animate a bounded number once after loading, never on each search keystroke.
+      [...document.querySelectorAll('#table-body tr')].slice(0,16).forEach((row,index) => {
+        playMotion(row, [{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}], {duration:380,delay:Math.min(index * 25,200),fill:'backwards'});
+      });
+    }
+    const chapters = [
+      ['A place for every case.', 'Arrange your subjects and keep each decision in its right chapter.'],
+      ['Turn reading into progress.', 'Move from not started to completed, one digest at a time.'],
+      ['Return with a clearer mind.', 'Flag the difficult decisions. Come back ready to connect the dots.']
+    ];
+    let activeChapter = 0;
+    const folio = document.querySelector('.folio');
+    const folioStage = document.querySelector('.folio-stage');
+    const chapterControls = document.querySelector('.folio-controls');
+    const chapterButtons = [...document.querySelectorAll('.folio-tab')];
+    function positionChapterIndicator() {
+      const button = chapterButtons[activeChapter];
+      chapterControls.style.setProperty('--tab-left', button.offsetLeft + 'px');
+      chapterControls.style.setProperty('--tab-width', button.offsetWidth + 'px');
+    }
+    positionChapterIndicator();
+    if ('ResizeObserver' in window) new ResizeObserver(positionChapterIndicator).observe(chapterControls);
+    else window.addEventListener('resize', positionChapterIndicator);
+    document.fonts?.ready.then(positionChapterIndicator);
+    chapterControls.addEventListener('keydown', event => {
+      const index = chapterButtons.indexOf(document.activeElement);
+      if (index < 0) return;
+      let next = index;
+      if (event.key === 'ArrowRight') next = (index + 1) % chapterButtons.length;
+      else if (event.key === 'ArrowLeft') next = (index + chapterButtons.length - 1) % chapterButtons.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = chapterButtons.length - 1;
+      else return;
+      event.preventDefault(); chapterButtons[next].focus(); chapterButtons[next].click();
+    });
+    document.querySelectorAll('.folio-tab').forEach(button => {
+      button.addEventListener('click', () => {
+        const index = Number(button.dataset.chapter);
+        if (index === activeChapter) return;
+        activeChapter = index;
+        positionChapterIndicator();
+        document.querySelectorAll('.folio-tab').forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
+        document.getElementById('folio-number').textContent = 'FIELD NOTES / 0' + (index + 1);
+        const copy = document.getElementById('folio-copy');
+        copy.querySelector('h2').textContent = chapters[index][0];
+        copy.querySelector('p').textContent = chapters[index][1];
+        folio.style.setProperty('--chapter-progress', (index + 1) / chapters.length);
+        playMotion(document.getElementById('folio-paper'), [{transform:'translateX(5px) rotate(1deg)'},{transform:'translateX(0) rotate(0deg)'}], {duration:650});
+        playMotion(copy, [{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}], {duration:450});
+      });
+    });
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    let tiltFrame = 0;
+    folio.addEventListener('pointermove', event => {
+      if (motionPreference.matches || !finePointer.matches) return;
+      cancelAnimationFrame(tiltFrame);
+      tiltFrame = requestAnimationFrame(() => {
+        const rect = folio.getBoundingClientRect();
+        const x = Math.max(-.5,Math.min(.5,(event.clientX - rect.left) / rect.width - .5));
+        const y = Math.max(-.5,Math.min(.5,(event.clientY - rect.top) / rect.height - .5));
+        folioStage.style.setProperty('--tilt-x', (-y * 5) + 'deg');
+        folioStage.style.setProperty('--tilt-y', (x * 7) + 'deg');
+      });
+    });
+    function resetTilt() {
+      cancelAnimationFrame(tiltFrame);
+      folioStage.style.setProperty('--tilt-x','0deg');
+      folioStage.style.setProperty('--tilt-y','0deg');
+    }
+    folio.addEventListener('pointerleave',resetTilt);
+    motionPreference.addEventListener('change', () => {
+      if (motionPreference.matches) { resetTilt(); document.getAnimations?.().forEach(animation => animation.cancel()); }
+    });
+  </script>
+  <div id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
