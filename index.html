@@ -419,41 +419,62 @@
     @media(max-width:1000px) and (min-width:768px) { .folio-paper { padding-right:16px; } .folio-paper h2 { font-size:22px; } .folio-tab { padding:8px 5px; } }
     @media(max-width:767px) { .folio { margin-top:24px; width:100%; max-width:420px; } .folio-stage { height:156px; margin-bottom:16px; } .folio-paper { padding-top:14px; padding-bottom:14px; } .folio-paper h2 { font-size:23px; margin-top:8px; } .folio-rule { margin-top:10px; } .folio-hint { display:none; } .auth-wordmark { margin-bottom:24px; } .auth-left { min-height:0; } }
     @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } .folio-stage,.stat-card:hover,.subject-button:hover,.btn:hover,.auth-btn:hover,.btn-primary:hover { transform:none!important; } }
+    /* Scroll-driven paper scene. The authentication panel remains within reach. */
+    #auth-screen { overflow-y:auto; overflow-x:hidden; align-items:flex-start; }
+    .auth-left { overflow:visible; min-width:0; min-height:100dvh; padding-bottom:100px; }
+    .auth-right, body:not(.intro-active) .auth-right { position:sticky; top:0; min-height:100dvh; height:auto; flex-shrink:0; }
+    .folio { position:sticky; top:40px; z-index:2; padding-top:20px; padding-bottom:16px; animation:none; }
+    .folio-stage { transform-style:preserve-3d; transform:rotateX(calc(12deg + var(--tilt-x,0deg) + var(--scroll-rx,0deg))) rotateY(calc(-14deg + var(--tilt-y,0deg) + var(--scroll-ry,0deg))); transition:transform .12s linear; }
+    .folio-stage::before, .folio:hover .folio-stage::before { transform:translate3d(calc(16px + var(--spread,0px)),14px,-44px) rotate(6deg); box-shadow:0 30px 50px #0005; }
+    .folio-stage::after, .folio:hover .folio-stage::after { transform:translate3d(calc(8px + var(--spread,0px)/2),7px,-22px) rotate(3deg); }
+    .folio-paper { transform:translateZ(12px); box-shadow:6px 8px 0 #d7cebb,8px 10px 0 #aa987b,0 30px 50px #0004; }
+    .scroll-cue { display:flex; align-items:center; gap:12px; color:#c9b78f; font-size:10px; text-transform:uppercase; letter-spacing:2px; margin-top:24px; }
+    .scroll-cue::before { content:""; width:1px; height:36px; background:linear-gradient(transparent,#c9b78f); }
+    .study-journey { width:100%; max-width:420px; padding-top:18vh; }
+    .journey-step { padding:34px 0; margin-bottom:16vh; border-top:1px solid #ffffff30; }
+    .journey-step:last-child { margin-bottom:0; }
+    .journey-step > span { color:#c9b78f; font:italic 20px Georgia,serif; }
+    .journey-step h2 { font:400 32px/1.2 Georgia,serif; margin:16px 0; color:#f4f0e7; }
+    .journey-step p { color:#b5c4d3; font-size:14px; line-height:1.8; max-width:330px; }
+    .stat-card { box-shadow:0 4px 0 var(--border),0 16px 28px #14283f0b; }
+    .stat-card:hover { transform:perspective(900px) rotateX(4deg) translateY(-5px); box-shadow:0 7px 0 var(--border),0 22px 32px #14283f15; }
+    .depth-reveal { transition:opacity .65s ease,transform .8s var(--ease-out); }
+    .depth-reveal.is-pending { opacity:0; transform:perspective(1000px) translateY(38px) rotateX(9deg); }
+    @media(max-width:767px) {
+      .auth-right, body:not(.intro-active) .auth-right { position:relative; min-height:0; order:-1; flex:none; }
+      body:not(.intro-active) .auth-left { width:100%; padding:40px 28px 64px; }
+      .folio { top:24px; margin-top:24px; }
+      .study-journey { padding-top:12vh; }
+      .journey-step { margin-bottom:10vh; }
+    }
+    @media(prefers-reduced-motion:reduce) {
+      .folio-stage { transform:none!important; }
+      .depth-reveal.is-pending { opacity:1; transform:none; }
+    }
   </style>
+  <link rel="stylesheet" href="book.css">
 </head>
 <body>
 
   <!-- AUTHENTICATION SCREEN -->
   <div id="auth-screen">
-    <div class="auth-left">
-      <div class="auth-wordmark"><span aria-hidden="true">§</span> Digest Tracker</div>
-      <div class="auth-story"><div class="auth-kicker">A little structure. A clearer mind.</div>
-        <h1><span class="title-line"><span><span class="title-word">Every</span> <span class="title-word" style="--word-delay:70ms">case.</span></span></span><span class="title-line"><span><span class="title-word" style="--word-delay:140ms">One</span> <span class="title-word" style="--word-delay:210ms">step</span> <em class="title-word" style="--word-delay:280ms">closer.</em></span></span></h1>
-        <p>Your space to organize case digests, follow your progress, and prepare for the next recitation.</p>
+    <section class="book-scroll" aria-label="An introduction in three pages">
+      <div class="book-scene">
+        <nav class="book-nav" aria-label="Main navigation"><a class="book-brand" href="index.html"><svg class="brand-mark" xmlns="http://www.w3.org/2000/svg" viewBox="30 62 234 228" width="30" height="30" fill="#c78f08" aria-hidden="true" focusable="false"><path d="M147 69 161 97 151 109 151 120H143V109L133 97Z"/><path d="M52 137C57 150 69 147 84 140 110 127 124 114 147 114S184 127 210 140C225 147 237 150 242 137 245 150 232 154 218 149 191 141 174 132 147 132S103 141 76 149C62 154 49 150 52 137Z"/><path d="M143 128H151V246L155 259V265H139V259L143 246Z"/><path d="M121 263H173C184 263 191 270 191 280V283H104V280C104 270 111 263 121 263Z"/><g fill="none" stroke="#c78f08" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M40 231 68 149 94 231M68 151V231M200 231 226 149 253 231M226 151V231"/></g><path d="M38 231H98C92 245 81 252 68 252S44 245 38 231ZM197 231H257C251 245 240 252 227 252S203 245 197 231Z"/></svg> Digest Tracker</a><div><a href="about.html">About</a><a href="developer.html">Developer</a><a href="#study-details" class="skip-book">Skip to sign in &nearr;</a></div></nav>
+        <div class="book-heading"><span>YOUR NEXT CHAPTER STARTS HERE</span><h1>Every case. <em>A new chapter.</em></h1></div>
+        <div id="book-viewport" role="img" aria-label="A leather-bound Philippine law school book. Scroll to open the cover and turn its curved paper pages.">
+          <div class="book-fallback"><span>PHILIPPINE</span><strong>LAW SCHOOL</strong><i>&sect;</i><p>A companion to every case.</p><small>DIGEST TRACKER &middot; PH EDITION</small></div>
+        </div>
+        <div class="book-caption"><p id="book-caption">Scroll to open your next chapter</p><div class="book-progress" aria-hidden="true"><i></i></div><span>&darr; SCROLL TO TURN THE PAGES</span></div>
       </div>
-      <section class="folio" aria-label="Explore your study workflow">
-        <div class="folio-stage">
-          <div class="folio-paper" id="folio-paper">
-            <div class="folio-meta"><span id="folio-number">FIELD NOTES / 01</span><span class="folio-seal" aria-hidden="true">§</span></div>
-            <div id="folio-copy" aria-live="polite" aria-atomic="true"><h2>A place for every case.</h2><p>Arrange your subjects and keep each decision in its right chapter.</p></div>
-            <div class="folio-rule" aria-hidden="true"></div>
-          </div>
-        </div>
-        <div class="folio-controls" role="group" aria-label="Study workflow chapters">
-          <span class="folio-indicator" aria-hidden="true"></span>
-          <button class="folio-tab" type="button" aria-pressed="true" data-chapter="0"><span>01</span> Organize</button>
-          <button class="folio-tab" type="button" aria-pressed="false" data-chapter="1"><span>02</span> Make progress</button>
-          <button class="folio-tab" type="button" aria-pressed="false" data-chapter="2"><span>03</span> Revisit</button>
-        </div>
-        <p class="folio-hint">YOUR NEXT CHAPTER STARTS HERE</p>
-      </section>
-    </div>
-    <div class="auth-right">
+    </section>
+    <div class="auth-right" id="study-details">
       <div class="auth-card">
+        <div class="book-details"><span>THE NEXT CHAPTER IS YOURS</span><h2>Less scattered.<br>More prepared.</h2><p>Organize case digests by subject, track your reading progress, and revisit the decisions that need another look.</p><p><a href="about.html">About the project &nearr;</a> &nbsp; <a href="developer.html">Meet the developer &nearr;</a></p></div>
 
         <div id="login-view">
           <div class="auth-header">
-            <div class="auth-logo">⚖️</div>
+            <div class="auth-logo"><svg class="brand-mark" xmlns="http://www.w3.org/2000/svg" viewBox="30 62 234 228" width="52" height="52" fill="#c78f08" aria-hidden="true" focusable="false"><path d="M147 69 161 97 151 109 151 120H143V109L133 97Z"/><path d="M52 137C57 150 69 147 84 140 110 127 124 114 147 114S184 127 210 140C225 147 237 150 242 137 245 150 232 154 218 149 191 141 174 132 147 132S103 141 76 149C62 154 49 150 52 137Z"/><path d="M143 128H151V246L155 259V265H139V259L143 246Z"/><path d="M121 263H173C184 263 191 270 191 280V283H104V280C104 270 111 263 121 263Z"/><g fill="none" stroke="#c78f08" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M40 231 68 149 94 231M68 151V231M200 231 226 149 253 231M226 151V231"/></g><path d="M38 231H98C92 245 81 252 68 252S44 245 38 231ZM197 231H257C251 245 240 252 227 252S203 245 197 231Z"/></svg></div>
             <h2>Welcome Back</h2>
             <p>Your study workspace is ready when you are.</p>
           </div>
@@ -471,7 +492,7 @@
 
         <div id="signup-view" style="display: none;">
           <div class="auth-header">
-            <div class="auth-logo">⚖️</div>
+            <div class="auth-logo"><svg class="brand-mark" xmlns="http://www.w3.org/2000/svg" viewBox="30 62 234 228" width="52" height="52" fill="#c78f08" aria-hidden="true" focusable="false"><path d="M147 69 161 97 151 109 151 120H143V109L133 97Z"/><path d="M52 137C57 150 69 147 84 140 110 127 124 114 147 114S184 127 210 140C225 147 237 150 242 137 245 150 232 154 218 149 191 141 174 132 147 132S103 141 76 149C62 154 49 150 52 137Z"/><path d="M143 128H151V246L155 259V265H139V259L143 246Z"/><path d="M121 263H173C184 263 191 270 191 280V283H104V280C104 270 111 263 121 263Z"/><g fill="none" stroke="#c78f08" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M40 231 68 149 94 231M68 151V231M200 231 226 149 253 231M226 151V231"/></g><path d="M38 231H98C92 245 81 252 68 252S44 245 38 231ZM197 231H257C251 245 240 252 227 252S203 245 197 231Z"/></svg></div>
             <h2>Create Account</h2>
             <p>Start organizing your case digests securely</p>
           </div>
@@ -498,7 +519,7 @@
 
     <aside class="sidebar" id="main-sidebar">
       <div class="sidebar-brand">
-        Digest Tracker<br><span style="font-size: 11px; font-weight: normal; opacity: 0.7;">PH Law Edition</span>
+        <svg class="brand-mark" xmlns="http://www.w3.org/2000/svg" viewBox="30 62 234 228" width="34" height="34" fill="#c78f08" aria-hidden="true" focusable="false"><path d="M147 69 161 97 151 109 151 120H143V109L133 97Z"/><path d="M52 137C57 150 69 147 84 140 110 127 124 114 147 114S184 127 210 140C225 147 237 150 242 137 245 150 232 154 218 149 191 141 174 132 147 132S103 141 76 149C62 154 49 150 52 137Z"/><path d="M143 128H151V246L155 259V265H139V259L143 246Z"/><path d="M121 263H173C184 263 191 270 191 280V283H104V280C104 270 111 263 121 263Z"/><g fill="none" stroke="#c78f08" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M40 231 68 149 94 231M68 151V231M200 231 226 149 253 231M226 151V231"/></g><path d="M38 231H98C92 245 81 252 68 252S44 245 38 231ZM197 231H257C251 245 240 252 227 252S203 245 197 231Z"/></svg><span>Digest Tracker<br><span style="font-size: 11px; font-weight: normal; opacity: 0.7;">PH Law Edition</span></span>
       </div>
 
       <div class="sidebar-section-title" style="display: flex; justify-content: space-between; align-items: center;">
@@ -511,7 +532,7 @@
       <ul class="nav-list" id="archived-list" style="flex: none; min-height: 50px;"></ul>
 
       <div class="sidebar-note">One case at a time.<br>Keep building your understanding.</div>
-      <div class="sidebar-footer">
+      <div class="sidebar-footer"><p style="margin-bottom:12px"><a href="about.html" style="color:inherit">About</a> ? <a href="developer.html" style="color:inherit">Developer</a></p>
         <button class="logout-btn" onclick="logout()">← Log Out</button>
       </div>
     </aside>
@@ -663,6 +684,8 @@
 
   <script>
     // --- THEME & COLOR WHEEL LOGIC ---
+    let preferenceSyncEnabled = false;
+    let preferenceSaveTimer;
     function adjustColorBrightness(col, amt) {
       let usePound = false;
       if (col[0] == "#") { col = col.slice(1); usePound = true; }
@@ -689,6 +712,7 @@
 
       localStorage.setItem('digest_tracker_theme', 'custom');
       localStorage.setItem('digest_tracker_custom_color', hex);
+      schedulePreferenceSave();
     }
 
     function changeTheme(theme) {
@@ -704,6 +728,7 @@
         document.getElementById('custom-color-picker').value = savedColor;
         applyCustomColor(savedColor);
       }
+      schedulePreferenceSave();
     }
 
     const savedTheme = localStorage.getItem('digest_tracker_theme') || 'blue';
@@ -723,7 +748,95 @@
 
     let activeSubjects = []; let archivedSubjects = []; let currentSubject = ''; let currentUser = null;
     let currentLoadedCases = [];
+    let workspaceReady = false;
+    let workspaceVersion = 0;
+    let workspaceLoading = false;
+    let subjectSaving = false;
+    let workspaceSaveQueue = Promise.resolve();
+    let authRefreshPromise = null;
     const authMsg = document.getElementById('auth-msg');
+
+    async function apiRequest(path, options = {}) {
+      const expectedUser = currentUser?.id;
+      const { data, error } = await _supabase.auth.getSession();
+      if (error || !expectedUser || !data.session || data.session.user.id !== expectedUser) throw new Error('Please sign in again.');
+      async function send(token) {
+        return fetch('/api' + path, {
+          method: options.method || 'GET', cache: 'no-store',
+          headers: { Authorization: 'Bearer ' + token, ...(options.body ? { 'Content-Type': 'application/json' } : {}) },
+          ...(options.body ? { body: JSON.stringify(options.body) } : {}), signal: AbortSignal.timeout(20000)
+        });
+      }
+      let response = await send(data.session.access_token);
+      if (response.status === 401) {
+        if (!authRefreshPromise) authRefreshPromise = _supabase.auth.refreshSession().finally(() => { authRefreshPromise = null; });
+        const refreshed = await authRefreshPromise;
+        if (refreshed.error || !refreshed.data.session || refreshed.data.session.user.id !== expectedUser) throw new Error('Please sign in again.');
+        response = await send(refreshed.data.session.access_token);
+      }
+      if (currentUser?.id !== expectedUser) throw new Error('Your signed-in account changed.');
+      let payload;
+      try { payload = await response.json(); } catch { throw new Error('The server returned an invalid response.'); }
+      if (!response.ok) {
+        const failure = new Error(payload.error || 'The request could not be completed.');
+        failure.status = response.status;
+        throw failure;
+      }
+      return payload;
+    }
+
+    function queueWorkspaceSave(path, body) {
+      const owner = currentUser?.id;
+      const queued = workspaceSaveQueue.catch(() => {}).then(async () => {
+        if (!workspaceReady || currentUser?.id !== owner) throw new Error('Please reload your workspace before saving.');
+        try {
+          const result = await apiRequest(path, { method: 'PUT', body: { ...body, version: workspaceVersion } });
+          workspaceVersion = result.data.version;
+          return result.data;
+        } catch (error) {
+          if (error.status === 409) {
+            workspaceReady = false;
+            preferenceSyncEnabled = false;
+          }
+          throw error;
+        }
+      });
+      workspaceSaveQueue = queued;
+      return queued;
+    }
+
+    function schedulePreferenceSave() {
+      if (!preferenceSyncEnabled) return;
+      clearTimeout(preferenceSaveTimer);
+      const owner = currentUser?.id;
+      preferenceSaveTimer = setTimeout(async () => {
+        if (!workspaceReady || currentUser?.id !== owner) return;
+        try {
+          const saved = await queueWorkspaceSave('/preferences', {
+            theme: localStorage.getItem('digest_tracker_theme') || 'blue',
+            customColor: localStorage.getItem('digest_tracker_custom_color') || '#0f3a68'
+          });
+          localStorage.setItem('digest_tracker_preferences_' + owner, JSON.stringify({ theme: saved.theme, customColor: saved.customColor }));
+        } catch (error) { toast('Theme was not synced: ' + error.message); }
+      }, 400);
+    }
+
+    async function initializeWorkspace() {
+      if (!currentUser || workspaceLoading === currentUser.id) return;
+      const owner = currentUser.id;
+      workspaceLoading = owner; workspaceReady = false; preferenceSyncEnabled = false;
+      document.getElementById('table-body').innerHTML = '<tr><td colspan="7" class="empty-state" role="status">Loading your workspace…</td></tr>';
+      try {
+        await loadSubjects();
+        if (currentUser?.id !== owner) return;
+        workspaceReady = true; preferenceSyncEnabled = true;
+        await fetchCases();
+      } catch (error) {
+        if (currentUser?.id !== owner) return;
+        document.getElementById('table-body').innerHTML = '<tr><td colspan="7" class="empty-state"><strong>Could not load your workspace</strong><p></p><button class="btn-cancel" onclick="initializeWorkspace()">Try again</button></td></tr>';
+        document.querySelector('#table-body p').textContent = error.message;
+      } finally { if (workspaceLoading === owner) workspaceLoading = false; }
+    }
 
     function toggleSidebar() {
       document.getElementById('main-sidebar').classList.toggle('open');
@@ -766,7 +879,7 @@
           document.getElementById('app-screen').style.display = 'flex';
           document.getElementById('display-username').textContent = currentUser.email || 'User';
           document.body.classList.remove('intro-active');
-          loadSubjects(); fetchCases();
+          initializeWorkspace();
         }, 500);
       } else {
         // If not logged in: Trigger slide-left animation to show form
@@ -810,14 +923,18 @@
           document.getElementById('auth-screen').style.display = 'none';
           document.getElementById('app-screen').style.display = 'flex';
           document.getElementById('display-username').textContent = currentUser.email || 'User';
-          loadSubjects(); fetchCases();
+          initializeWorkspace();
         }, 500);
       }
     }
 
     async function logout() {
+      clearTimeout(preferenceSaveTimer);
+      preferenceSyncEnabled = false; workspaceReady = false; ++fetchVersion;
       await _supabase.auth.signOut();
       currentUser = null;
+      activeSubjects = []; archivedSubjects = []; currentSubject = ''; currentLoadedCases = [];
+      renderSubjects(); renderTable([]);
 
       // Return to sliding UI
       document.getElementById('app-screen').style.display = 'none';
@@ -827,19 +944,48 @@
       }, 50);
     }
 
-    function loadSubjects() {
-      const storedActive = localStorage.getItem(`activeSubjects_${currentUser.id}`);
-      const storedArchived = localStorage.getItem(`archivedSubjects_${currentUser.id}`);
-      activeSubjects = storedActive ? JSON.parse(storedActive) : ['Constitutional Law I', 'Criminal Law I', 'Persons and Family Relations', 'Statutory Construction'];
-      archivedSubjects = storedArchived ? JSON.parse(storedArchived) : [];
+    async function loadSubjects() {
+      const owner = currentUser.id;
+      let { data } = await apiRequest('/workspace');
+      if (!data) {
+        const readList = (key, fallback) => {
+          try { const value = JSON.parse(localStorage.getItem(key)); return Array.isArray(value) && value.every(item => typeof item === 'string') ? value : fallback; } catch { return fallback; }
+        };
+        const active = readList('activeSubjects_' + owner, ['Constitutional Law I', 'Criminal Law I', 'Persons and Family Relations', 'Statutory Construction']);
+        const archived = readList('archivedSubjects_' + owner, []);
+        let prefs;
+        try { prefs = JSON.parse(localStorage.getItem('digest_tracker_preferences_' + owner)); } catch {}
+        ({ data } = await apiRequest('/workspace', { method: 'POST', body: {
+          activeSubjects: [...new Set(active)], archivedSubjects: [...new Set(archived)].filter(name => !active.includes(name)),
+          theme: prefs?.theme || localStorage.getItem('digest_tracker_theme') || 'blue',
+          customColor: prefs?.customColor || localStorage.getItem('digest_tracker_custom_color') || '#0f3a68'
+        } }));
+      }
+      if (currentUser?.id !== owner) return;
+      activeSubjects = data.activeSubjects; archivedSubjects = data.archivedSubjects; workspaceVersion = data.version;
+      cacheSubjects();
+      localStorage.setItem('digest_tracker_custom_color', data.customColor);
+      document.getElementById('custom-color-picker').value = data.customColor;
+      changeTheme(data.theme);
+      localStorage.setItem('digest_tracker_preferences_' + owner, JSON.stringify({ theme: data.theme, customColor: data.customColor }));
       if (!activeSubjects.includes(currentSubject)) currentSubject = activeSubjects[0] || '';
       document.getElementById('current-subject-title').textContent = currentSubject || "No Subject Selected";
       renderSubjects();
     }
 
-    function saveSubjects() {
+    function cacheSubjects() {
       localStorage.setItem(`activeSubjects_${currentUser.id}`, JSON.stringify(activeSubjects));
       localStorage.setItem(`archivedSubjects_${currentUser.id}`, JSON.stringify(archivedSubjects));
+    }
+
+    async function saveSubjects(nextActive, nextArchived) {
+      if (!workspaceReady) throw new Error('Please reload your workspace before saving subjects.');
+      const saved = await queueWorkspaceSave('/subjects', { activeSubjects: nextActive, archivedSubjects: nextArchived });
+      activeSubjects = saved.activeSubjects; archivedSubjects = saved.archivedSubjects;
+      cacheSubjects();
+      if (!activeSubjects.includes(currentSubject)) currentSubject = activeSubjects[0] || '';
+      document.getElementById('current-subject-title').textContent = currentSubject || 'No Subject Selected';
+      renderSubjects();
     }
 
     function renderSubjects() {
@@ -861,39 +1007,57 @@
     function selectSubject(sub) { currentSubject = sub; document.getElementById('current-subject-title').textContent = currentSubject; renderSubjects(); fetchCases(); closeSidebar(); }
     function promptAddSubject() { document.getElementById('new-subject-input').value = ''; document.getElementById('add-subject-modal').style.display = 'flex'; setTimeout(() => document.getElementById('new-subject-input').focus(), 100); }
     function closeAddSubjectModal() { document.getElementById('add-subject-modal').style.display = 'none'; }
-    function executeAddSubject() {
+    async function executeAddSubject() {
+      if (subjectSaving) return;
       const newSub = document.getElementById('new-subject-input').value.trim();
       if (newSub !== '') {
-        if (!activeSubjects.includes(newSub) && !archivedSubjects.includes(newSub)) { activeSubjects.push(newSub); saveSubjects(); selectSubject(newSub); closeAddSubjectModal(); }
-        else { alert("Subject already exists!"); }
+        if (activeSubjects.includes(newSub) || archivedSubjects.includes(newSub)) return toast('Subject already exists.');
+        subjectSaving = true;
+        try { await saveSubjects([...activeSubjects, newSub], [...archivedSubjects]); selectSubject(newSub); closeAddSubjectModal(); }
+        catch (error) { toast(error.message); }
+        finally { subjectSaving = false; }
       }
     }
 
     let subjectToArchive = null;
     function promptArchiveSubject(sub) { subjectToArchive = sub; document.getElementById('archive-subject-name').textContent = sub; document.getElementById('archive-subject-modal').style.display = 'flex'; }
     function closeArchiveSubjectModal() { subjectToArchive = null; document.getElementById('archive-subject-modal').style.display = 'none'; }
-    function executeArchiveSubject() {
-      if (!subjectToArchive) return;
-      activeSubjects = activeSubjects.filter(s => s !== subjectToArchive); archivedSubjects.push(subjectToArchive); saveSubjects();
-      if (currentSubject === subjectToArchive) {
-        currentSubject = activeSubjects.length > 0 ? activeSubjects[0] : '';
-        document.getElementById('current-subject-title').textContent = currentSubject || 'No Subject Selected'; fetchCases();
-      }
-      renderSubjects(); closeArchiveSubjectModal();
+    async function executeArchiveSubject() {
+      if (!subjectToArchive || subjectSaving) return;
+      const target = subjectToArchive;
+      subjectSaving = true;
+      try {
+        await saveSubjects(activeSubjects.filter(s => s !== target), [...archivedSubjects, target]);
+        closeArchiveSubjectModal(); await fetchCases();
+      } catch (error) { toast(error.message); }
+      finally { subjectSaving = false; }
     }
-    function unarchiveSubject(sub) { archivedSubjects = archivedSubjects.filter(s => s !== sub); activeSubjects.push(sub); saveSubjects(); renderSubjects(); }
+    async function unarchiveSubject(sub) {
+      if (subjectSaving) return;
+      subjectSaving = true;
+      try { await saveSubjects([...activeSubjects, sub], archivedSubjects.filter(s => s !== sub)); await fetchCases(); }
+      catch (error) { toast(error.message); }
+      finally { subjectSaving = false; }
+    }
 
     let fetchVersion = 0;
     async function fetchCases() {
+      if (!workspaceReady) return initializeWorkspace();
       const version = ++fetchVersion;
       currentLoadedCases = []; renderTable([]);
       if (!currentUser || !currentSubject) return;
       document.getElementById('table-body').innerHTML = '<tr><td colspan="7" class="empty-state" role="status">Loading your cases…<div class="loading-line" aria-hidden="true"></div></td></tr>';
       try {
-        const { data, error } = await _supabase.from('case_digests').select('*').eq('user_id', currentUser.id).eq('subject', currentSubject).order('created_at', { ascending: false });
-        if (version !== fetchVersion) return;
-        if (error) throw error;
-        currentLoadedCases = data || []; renderTable(currentLoadedCases); animateCaseRows();
+        const cases = [];
+        let offset = 0;
+        do {
+          const result = await apiRequest('/cases?' + new URLSearchParams({ subject: currentSubject, offset }));
+          if (version !== fetchVersion) return;
+          cases.push(...result.data);
+          if (result.nextOffset !== null && (!Number.isSafeInteger(result.nextOffset) || result.nextOffset <= offset)) throw new Error('Invalid page response.');
+          offset = result.nextOffset;
+        } while (offset !== null);
+        currentLoadedCases = cases; renderTable(currentLoadedCases); animateCaseRows();
       } catch (error) {
         if (version !== fetchVersion) return;
         document.getElementById('table-body').innerHTML = '<tr><td colspan="7" class="empty-state"><strong>Couldn’t load your cases</strong><p>Check your connection and try again.</p><button class="btn-cancel" onclick="fetchCases()">Try again</button></td></tr>';
@@ -911,24 +1075,22 @@
       const caseName = document.getElementById('input-case').value.trim() || "-";
       const topic = document.getElementById('input-topic').value.trim() || "-";
 
-      let searchQuery = `${grNumber.replace(/"/g, '')}`;
-      if (caseName && caseName !== "-") searchQuery += ` ${caseName.replace(/"/g, '')}`; searchQuery += " (site:lawphil.net OR site:elibrary.judiciary.gov.ph)";
-
       const newCase = {
-        user_id: currentUser.id, subject: currentSubject,
+        subject: currentSubject,
         gr: grNumber, status: '-', caseName: caseName, topic: topic,
-        type: document.getElementById('input-type').value, link: `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&btnI=I`
+        type: document.getElementById('input-type').value
       };
 
-      const { error } = await _supabase.from('case_digests').insert([newCase]);
-      btn.textContent = "Add Case"; btn.disabled = false;
-      if (error) toast("Failed to save: " + error.message); else { document.getElementById('add-case-form').reset(); toast('Case added to your reading list.'); fetchCases(); }
+      try {
+        await apiRequest('/cases', { method: 'POST', body: newCase });
+        document.getElementById('add-case-form').reset(); toast('Case added to your reading list.'); await fetchCases();
+      } catch (error) { toast('Could not save: ' + error.message); }
+      finally { btn.textContent = 'Add Case'; btn.disabled = false; }
     });
 
     async function updateStatus(id, newStatus) {
       try {
-        const { error } = await _supabase.from('case_digests').update({ status: newStatus }).eq('id', id).eq('user_id', currentUser.id);
-        if (error) throw error;
+        await apiRequest('/cases/' + encodeURIComponent(id), { method: 'PATCH', body: { status: newStatus } });
         const item = currentLoadedCases.find(c => String(c.id) === String(id));
         if (item) item.status = newStatus;
         toast('Case status updated.');
@@ -957,22 +1119,19 @@
       if (!newGr) return toast('Please enter a G.R. number.');
       const newCaseName = document.getElementById('edit-case').value.trim() || "-";
 
-      let searchQuery = `${newGr.replace(/"/g, '')}`;
-      if (newCaseName && newCaseName !== "-") searchQuery += ` ${newCaseName.replace(/"/g, '')}`; searchQuery += " (site:lawphil.net OR site:elibrary.judiciary.gov.ph)";
-
       const updates = {
         gr: newGr,
         caseName: newCaseName,
         topic: document.getElementById('edit-topic').value.trim() || "-",
-        type: document.getElementById('edit-type').value,
-        link: `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&btnI=I`
+        type: document.getElementById('edit-type').value
       };
 
       btn.textContent = 'Saving...'; btn.disabled = true;
-      const { error } = await _supabase.from('case_digests').update(updates).eq('id', id);
-      btn.textContent = 'Save Changes'; btn.disabled = false;
-
-      if (error) toast("Could not save changes. Please try again."); else { closeEditModal(); toast('Case details saved.'); fetchCases(); }
+      try {
+        await apiRequest('/cases/' + encodeURIComponent(id), { method: 'PATCH', body: updates });
+        closeEditModal(); toast('Case details saved.'); await fetchCases();
+      } catch (error) { toast('Could not save: ' + error.message); }
+      finally { btn.textContent = 'Save Changes'; btn.disabled = false; }
     }
 
     // --- DELETE LOGIC ---
@@ -982,9 +1141,11 @@
     async function executeDelete() {
       if (!caseToDeleteId) return;
       const btn = document.getElementById('confirm-delete-btn'); btn.textContent = 'Deleting...'; btn.disabled = true;
-      const { error } = await _supabase.from('case_digests').delete().eq('id', caseToDeleteId);
-      btn.textContent = 'Delete'; btn.disabled = false; closeDeleteModal();
-      if (error) alert("Failed to delete."); else fetchCases();
+      try {
+        await apiRequest('/cases/' + encodeURIComponent(caseToDeleteId), { method: 'DELETE' });
+        closeDeleteModal(); toast('Case deleted.'); await fetchCases();
+      } catch (error) { toast('Could not delete: ' + error.message); }
+      finally { btn.textContent = 'Delete'; btn.disabled = false; }
     }
 
     function visibleCases(cases) {
@@ -1091,75 +1252,8 @@
         playMotion(row, [{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}], {duration:380,delay:Math.min(index * 25,200),fill:'backwards'});
       });
     }
-    const chapters = [
-      ['A place for every case.', 'Arrange your subjects and keep each decision in its right chapter.'],
-      ['Turn reading into progress.', 'Move from not started to completed, one digest at a time.'],
-      ['Return with a clearer mind.', 'Flag the difficult decisions. Come back ready to connect the dots.']
-    ];
-    let activeChapter = 0;
-    const folio = document.querySelector('.folio');
-    const folioStage = document.querySelector('.folio-stage');
-    const chapterControls = document.querySelector('.folio-controls');
-    const chapterButtons = [...document.querySelectorAll('.folio-tab')];
-    function positionChapterIndicator() {
-      const button = chapterButtons[activeChapter];
-      chapterControls.style.setProperty('--tab-left', button.offsetLeft + 'px');
-      chapterControls.style.setProperty('--tab-width', button.offsetWidth + 'px');
-    }
-    positionChapterIndicator();
-    if ('ResizeObserver' in window) new ResizeObserver(positionChapterIndicator).observe(chapterControls);
-    else window.addEventListener('resize', positionChapterIndicator);
-    document.fonts?.ready.then(positionChapterIndicator);
-    chapterControls.addEventListener('keydown', event => {
-      const index = chapterButtons.indexOf(document.activeElement);
-      if (index < 0) return;
-      let next = index;
-      if (event.key === 'ArrowRight') next = (index + 1) % chapterButtons.length;
-      else if (event.key === 'ArrowLeft') next = (index + chapterButtons.length - 1) % chapterButtons.length;
-      else if (event.key === 'Home') next = 0;
-      else if (event.key === 'End') next = chapterButtons.length - 1;
-      else return;
-      event.preventDefault(); chapterButtons[next].focus(); chapterButtons[next].click();
-    });
-    document.querySelectorAll('.folio-tab').forEach(button => {
-      button.addEventListener('click', () => {
-        const index = Number(button.dataset.chapter);
-        if (index === activeChapter) return;
-        activeChapter = index;
-        positionChapterIndicator();
-        document.querySelectorAll('.folio-tab').forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
-        document.getElementById('folio-number').textContent = 'FIELD NOTES / 0' + (index + 1);
-        const copy = document.getElementById('folio-copy');
-        copy.querySelector('h2').textContent = chapters[index][0];
-        copy.querySelector('p').textContent = chapters[index][1];
-        folio.style.setProperty('--chapter-progress', (index + 1) / chapters.length);
-        playMotion(document.getElementById('folio-paper'), [{transform:'translateX(5px) rotate(1deg)'},{transform:'translateX(0) rotate(0deg)'}], {duration:650});
-        playMotion(copy, [{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}], {duration:450});
-      });
-    });
-    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-    let tiltFrame = 0;
-    folio.addEventListener('pointermove', event => {
-      if (motionPreference.matches || !finePointer.matches) return;
-      cancelAnimationFrame(tiltFrame);
-      tiltFrame = requestAnimationFrame(() => {
-        const rect = folio.getBoundingClientRect();
-        const x = Math.max(-.5,Math.min(.5,(event.clientX - rect.left) / rect.width - .5));
-        const y = Math.max(-.5,Math.min(.5,(event.clientY - rect.top) / rect.height - .5));
-        folioStage.style.setProperty('--tilt-x', (-y * 5) + 'deg');
-        folioStage.style.setProperty('--tilt-y', (x * 7) + 'deg');
-      });
-    });
-    function resetTilt() {
-      cancelAnimationFrame(tiltFrame);
-      folioStage.style.setProperty('--tilt-x','0deg');
-      folioStage.style.setProperty('--tilt-y','0deg');
-    }
-    folio.addEventListener('pointerleave',resetTilt);
-    motionPreference.addEventListener('change', () => {
-      if (motionPreference.matches) { resetTilt(); document.getAnimations?.().forEach(animation => animation.cancel()); }
-    });
   </script>
+  <script type="module" src="src/book.ts"></script>
   <div id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

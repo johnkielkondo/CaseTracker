@@ -1,4 +1,51 @@
-Digest Tracker — Features and Descriptions
+# Digest Tracker
+
+Digest Tracker is a case-digest workspace for Philippine law students. The frontend uses TypeScript, Vite, and Three.js; ASP.NET Core serves the built site and forwards `/api/*` to a separate Node.js API. Supabase provides authentication and database storage.
+
+```text
+Browser -- HTTPS --> Web EC2 (ASP.NET Core / YARP)
+                            |
+                       private network
+                            |
+                            v
+                        API EC2 (Node.js) --> Supabase database
+
+Browser --> Supabase Auth (sign-in and session renewal)
+```
+
+The API verifies access tokens, scopes database operations to the authenticated owner, and relies on database row-level security as an additional boundary. It handles cases, subjects, archives, and preferences. The Connection Desk at `/lab-index.html` demonstrates web-to-API communication.
+
+Autoscaling and additional self-healing infrastructure are deferred. The current deployment uses one instance per role and systemd process restart policies. The root `user-data.sh` is a legacy CPU-load lab script, not the deployment entry point; use the scripts in `deploy/aws/` for the current application.
+
+## AWS deployment
+
+Use [the two-EC2 deployment guide](deploy/aws/README.md) and the [application API migration guide](deploy/aws/API-MIGRATION.md). The Ubuntu web instance uses ASP.NET Core and YARP to forward `/api/*` to the API instance's private address on port 3000. No Nginx is used. Case CRUD, subject lists, archives, and preferences now go through the EC2 API. Supabase still provides authentication and database storage. Run the SQL migration and configure the API before deploying this frontend.
+
+The web host targets .NET 10. Set `ApiBaseUrl=http://API_PRIVATE_IP:3000` on the web server. Without that setting, static pages still work and `/api/*` returns HTTP 503. `/health` reports the web process's health independently of the API.
+
+## Run locally
+
+The 3D book is built with **Three.js, TypeScript, and Vite**. Use Node.js 22.12+ (or a compatible newer release).
+
+```sh
+npm install
+npm run dev
+```
+
+Open http://localhost:8080. Scroll to open the leather cover and turn the curved pages, or use **Skip to sign in**. About and Developer are separate pages.
+
+```sh
+npm run build       # Type-check and build all three pages into dist/
+npm run preview     # Serve the production build on port 8080
+npm run test:browser # With the server running; uses installed Google Chrome
+npm run test:api     # API validation and ownership tests; uses simulated upstream data
+```
+
+The ASP.NET host serves the same `dist/` build: run `npm run build` before `dotnet run` or `dotnet publish`. Do not serve the raw TypeScript files with a plain static server; serve `dist/` or use Vite. For local application development, set `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, run `node api/server.mjs` on port 3000, and run Vite on port 8080. Vite forwards `/api` to the local API. Authentication uses Supabase directly; database operations never use the browser's Supabase data client.
+
+Book materials and lettering are generated locally on canvas. Scroll-driven geometry bends each page around its binding. Rendering stops when idle or when the tab is hidden. Reduced-motion users see a static book with immediately accessible details; devices without WebGL retain a static cover and usable sign-in form.
+
+## Features and Descriptions
 Digest Tracker is a specialized web application designed for Philippine law students to organize, manage, and track case digests across academic subjects. It streamlines the study workflow by combining subject management, progress tracking, dynamic color themes, and automated legal research tools.
 
 What It Is For
